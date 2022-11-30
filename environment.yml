@@ -1,25 +1,12 @@
-# ``conda env create --file environment.yml``
-# or
-# ``conda env create --name <myEnvName> --file environment.yml``
-
 name: ultra
 dependencies:
   - astropy
-  - configparser
+  - exoscene
   - flake8
   - jupyter
   - matplotlib
   - numpy
-  - openpyxl
-  - pandas
-  - pip
-  - conda-forge::pypdf2
   - pytest
   - python=3.10
-  - scipy
   - conda-forge::hcipy<=0.4
-  - conda-forge::progressbar2
-  - pip:
-    - fpdf
-    - poppy
-    - git+https://github.com/spacetelescope/pastis.git@develop
+ 

@@ -1,0 +1,11 @@
+name: ultra
+dependencies:
+  - astropy
+  - flake8
+  - jupyter
+  - matplotlib
+  - numpy
+  - pip
+  - pytest
+  - python=3.10
+  - conda-forge::hcipy<=0.4

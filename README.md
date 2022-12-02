@@ -13,19 +13,12 @@ Pre-install `conda` and `git` in your machine.
 ```bash
 $ cd /User/<YourUser>/repos/
 ```
+- Before cloning this repository, follow the installation instructions for PASTIS: https://github.com/spacetelescope/PASTIS
 
-- Clone the repository:
+- Create a new `ultra` conda environment using the `environment.yml` file present inside PASTIS repository:
 ```bash
-$ git clone https://github.com/spacetelescope/ULTRA.git
-```
-- Navigate into the cloned `ULTRA` repository:  
-```bash
-$ cd ULTRA
-```
-
-- Create the `ultra` conda environment:  
-```bash
-$ conda env create --file environment.yml
+$ cd PASTIS
+$ conda env create --name ultra --file environment.yml
 ```
 
 - Activate the conda environment:
@@ -33,13 +26,30 @@ $ conda env create --file environment.yml
 $ conda activate ultra
 ```
 
-- Install the package into this environment in develop mode
+- Clone the `ULTRA` repository:
 ```bash
+$ git clone https://github.com/spacetelescope/ULTRA.git
+```
+
+- Update the newly created `ultra` conda environment with `environment.yml` file inside `ULTRA` repository:  
+```bash
+$ cd ULTRA
+$ conda env update --file environment.yml
+```
+
+- Install the `ULTRA` package into `ultra` environment in develop mode:
+```bash
+$ python setup.py develop
+```
+
+- Install the `PASTIS` package into `ultra` environment in develop mode:
+```bash
+$ cd PASTIS
 $ python setup.py develop
 ```
 
 ### Contribution guidelines
 - Create a new branch from develop. 
 - Open a new pull request for bugs, enhancement or suggestion using the branch.
-- Rebase your branch whenever there is any new update on develop.
+- Rebase and fix merge conflicts on your branch whenever there is an update on develop.
 - Assign reviewer on your pull request and mark it ready to review.

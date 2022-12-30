@@ -75,3 +75,38 @@ def calculate_sensitivity_matrices(e0_coron, e0_obwfs, efield_coron_real, efield
               "sensitvity_wfs_plane": g_obwfs_downsampled}
 
     return matrix
+
+
+def sort_1d_mus_per_actuator(mus, nmodes, nsegs):
+    num_actuators = nmodes * nsegs
+    coeffs_numaps = np.zeros([nmodes, num_actuators])
+    for mode in range(nmodes):
+        coeffs_tmp = np.zeros([num_actuators])
+        for seg in range(nsegs):
+            coeffs_tmp[mode + seg * nmodes] = mus[mode + seg * nmodes]  # arranged per modal basis
+        coeffs_numaps[mode] = coeffs_tmp  # arranged into 5 groups of 600 elements and in units of nm
+
+    return coeffs_numaps
+
+
+def sort_1d_mus_per_seg(mus, nmodes, nsegs):
+    coeffs_table = np.zeros([nmodes, nsegs])
+    for mode in range(nmodes):
+        for seg in range(nsegs):
+            coeffs_table[mode, seg] = mus[mode + seg * nmodes]
+    return coeffs_table
+
+
+def calc_mean_tolerance_per_mode(opt_wavescale, mus, nmodes, nsegs, tscale):
+    coeffs_table = sort_1d_mus_per_seg(mus, nmodes, nsegs)
+    Qtotal = np.diag(np.asarray(mus ** 2))
+
+    total_dynamic_tolerances = np.diag(0.0001 * opt_wavescale ** 2 * Qtotal)
+    per_mode_dynamic_tolerances = []
+    for mode in range(nmodes):
+        individual_dynamic_tolerance = 0.0001 * opt_wavescale ** 2 * (coeffs_table[mode] ** 2)
+        per_mode_dynamic_tolerances.append(individual_dynamic_tolerance)
+
+    per_mode_temporal_tolerances = np.array(per_mode_dynamic_tolerances)
+    return total_dynamic_tolerances, np.sqrt(np.mean(per_mode_temporal_tolerances))*1e3*tscale
+

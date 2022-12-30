@@ -2,7 +2,7 @@ import hcipy
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-from matplotlib.colors import TwoSlopeNorm
+from matplotlib.colors import TwoSlopeNorm, LinearSegmentedColormap
 from pastis.util import sort_1d_mus_per_actuator
 
 
@@ -91,3 +91,21 @@ def plot_iter_wf(Qharris, TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_
     plt.tick_params(axis='both', which='minor', length=6, width=2)
     plt.grid()
     plt.savefig(os.path.join(data_dir, 'cont_wf_%s.png' % C_TARGET))
+
+
+def plot_pastis_matrix(pastis_matrix, data_dir, vcenter, vmin, vmax):
+    clist = [(0.1, 0.6, 1.0), (0.05, 0.05, 0.05), (0.8, 0.5, 0.1)]
+    blue_orange_divergent = LinearSegmentedColormap.from_list("custom_blue_orange", clist)
+
+    plt.figure(figsize=(10, 8))
+    norm_mat = TwoSlopeNorm(vcenter, vmin, vmax)
+    plt.imshow(pastis_matrix, cmap=blue_orange_divergent, norm=norm_mat)
+    plt.title(r"PASTIS matrix $M$", fontsize=20)
+    plt.xlabel("Mode Index", fontsize=20)
+    plt.ylabel("Mode Index", fontsize=20)
+    plt.tick_params(labelsize=15)
+    cbar = plt.colorbar(fraction=0.046, pad=0.04)
+    cbar.set_label(r"in units of ${contrast\ per\ {nm}^2}$", fontsize=15)
+    plt.tight_layout()
+
+    plt.savefig(os.path.join(data_dir, 'pastis_matrix.png'))

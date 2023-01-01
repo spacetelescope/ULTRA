@@ -1,27 +1,41 @@
 from astropy.io import fits
 import astropy.units as u
 import exoscene.star
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import time
+import pandas as pd
 
 from pastis.config import CONFIG_PASTIS
 from pastis.matrix_generation.matrix_from_efields import MatrixEfieldHex
 from pastis.pastis_analysis import calculate_segment_constraints
+from pastis.util import dh_mean
 
 from ultra.config import CONFIG_ULTRA
 from ultra.util import calculate_sensitivity_matrices
 from ultra.close_loop_analysis import req_closedloop_calc_batch
+from ultra.plotting import plot_iter_wf, plot_multimode_surface_maps, plot_pastis_matrix
 
 if __name__ == '__main__':
 
+    # Set number of rings
+    NUM_RINGS = 5
+
     # Define the type of WFE.
     WHICH_DM = 'harris_seg_mirror'
-    APLC_DESIGN = 'small'
 
     # Define target contrast
-    C_TARGET = 1e-10
+    C_TARGET = 1e-11
+
+    # Parameters for Temporal Ananlysis
+    sptype = CONFIG_ULTRA.get('target', 'sptype')
+    Vmag = CONFIG_ULTRA.getfloat('target', 'Vmag')
+
+    minlam = CONFIG_ULTRA.getfloat('target', 'minlam') * u.nanometer
+    maxlam = CONFIG_ULTRA.getfloat('target', 'maxlam') * u.nanometer
+
+    dark_current = CONFIG_ULTRA.getfloat('detector', 'dark_current')
+    CIC = CONFIG_ULTRA.getfloat('detector', 'dark_current')
 
     if WHICH_DM == 'harris_seg_mirror':
         fpath = CONFIG_PASTIS.get('LUVOIR', 'harris_data_path')  # path to Harris spreadsheet
@@ -29,7 +43,6 @@ if __name__ == '__main__':
         DM_SPEC = (fpath, pad_orientations, True, False, False)
         NUM_MODES = 5 # TODO: works only for thermal modes currently
 
-    NUM_RINGS = 1
     run_matrix = MatrixEfieldHex(which_dm=WHICH_DM, dm_spec=DM_SPEC, num_rings=NUM_RINGS,
                                  calc_science=True, calc_wfs=True,
                                  initial_path=CONFIG_PASTIS.get('local', 'local_data_path'), norm_one_photon=True)
@@ -38,10 +51,16 @@ if __name__ == '__main__':
     data_dir = run_matrix.overall_dir
     print(f'All saved to {data_dir}.')
 
+    tel = run_matrix.simulator
+
+    unaber_psf = fits.getdata(os.path.join(data_dir, 'unaberrated_coro_psf.fits'))  # already normalized to max of direct pdf
+    dh_mask_shaped = tel.dh_mask.shaped
+    contrast_floor = dh_mean(unaber_psf, dh_mask_shaped)
+
     # Calculate static tolerances.
     pastis_matrix = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'pastis_matrix.fits'))
     mus = calculate_segment_constraints(pastis_matrix, c_target=C_TARGET, coronagraph_floor=0)
-    np.savetxt(os.path.join(data_dir, 'mus_harris_%s.csv' % C_TARGET), mus, delimiter=',')
+    np.savetxt(os.path.join(data_dir, 'mus_5Hex_%s.csv' % C_TARGET), mus, delimiter=',')
 
     # Get the efields at wfs and science plane.
     efield_science_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_coron_real.fits'))
@@ -61,25 +80,15 @@ if __name__ == '__main__':
     e0_wfs = sensitivity_matrices['ref_wfs_plane']
 
     # Compute Temporal tolerances.
-    tel = run_matrix.simulator
+
+    # Compute Star flux.
     npup = int(np.sqrt(tel.pupil_grid.x.shape[0]))
-
-    sptype = CONFIG_ULTRA.get('target', 'sptype')
-    Vmag = CONFIG_ULTRA.getint('target', 'vmag')
-
-    minlam = CONFIG_ULTRA.get('target', 'minlam') * u.nanometer
-    maxlam = CONFIG_ULTRA.get('target', 'maxlam') * u.nanometer
-
-    dark_current = CONFIG_ULTRA.getfloat('detector', 'dark_current')
-    CIC = CONFIG_ULTRA.getfloat('detector', 'dark_current')
-
-    star_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=Vmag, minlam=minlam.value,
-                                                          maxlam=maxlam.value)
+    star_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=Vmag,
+                                                          minlam=minlam.value, maxlam=maxlam.value)
     Nph = star_flux.value * 15 ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
     flux = Nph
 
-    Qharris = np.diag(np.asarray(mus ** 2))
-
+    # Set close loop parameters.
     detector_noise = 0.0
     niter = 10
     TimeMinus = -2
@@ -87,14 +96,13 @@ if __name__ == '__main__':
     Ntimes = 20
     Nwavescale = 8
     Nflux = 3
+    Qharris = np.diag(np.asarray(mus ** 2))
+
     res = np.zeros([Ntimes, Nwavescale, Nflux, 1])
     result_wf_test = []
 
     unaberrated_coro_psf, ref = tel.calc_psf(ref=True, display_intermediate=False, norm_one_photon=True)
     norm = np.max(ref)
-
-    print(norm)
-
 
     for wavescale in range(1, 15, 2):
         print('recurssive close loop batch estimation and wavescale %f' % wavescale)
@@ -112,33 +120,73 @@ if __name__ == '__main__':
             n_tmp1 = len(tmp1)
             result_wf_test.append(tmp1[n_tmp1 - 1])
 
-    delta_wf = []
-    for wavescale in range(1, 15, 2):
-        wf = np.sqrt(np.mean(np.diag(0.0001 * wavescale ** 2 * Qharris))) * 1e3
-        delta_wf.append(wf)
+    plot_iter_wf(Qharris, -2, 5.5, 20, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir)
 
-    texp = np.logspace(TimeMinus, TimePlus, Ntimes)
-    font = {'family': 'serif', 'color': 'black', 'weight': 'normal', 'size': 20}
-    contrast_floor = 4.237636070056418e-11
-    result_wf_test = np.asarray(result_wf_test)
-    plt.figure(figsize=(15, 10))
-    plt.title('Target contrast = %s, Vmag= %s' % (C_TARGET, Vmag), fontdict=font)
-    plt.plot(texp, result_wf_test[0:20] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[0]))
-    plt.plot(texp, result_wf_test[20:40] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[1]))
-    plt.plot(texp, result_wf_test[40:60] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[2]))
-    plt.plot(texp, result_wf_test[60:80] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[3]))
-    plt.plot(texp, result_wf_test[80:100] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[4]))
-    plt.plot(texp, result_wf_test[100:120] - contrast_floor, label=r'$\Delta_{wf}= %.2f\ pm/s$' % (delta_wf[5]))
-    plt.plot(texp, result_wf_test[120:140] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[6]))
-    plt.xlabel("$t_{WFS}$ in secs", fontsize=20)
-    plt.ylabel("$\Delta$ contrast", fontsize=20)
-    plt.yscale('log')
-    plt.xscale('log')
-    plt.legend(loc='upper center', fontsize=20)
-    plt.tick_params(top=True, bottom=True, left=True,
-                    right=True, labelleft=True, labelbottom=True,
-                    labelsize=20)
-    plt.tick_params(axis='both', which='major', length=10, width=2)
-    plt.tick_params(axis='both', which='minor', length=6, width=2)
-    plt.grid()
-    plt.savefig(os.path.join(data_dir, 'cont_wf_%s.png' % C_TARGET))
+    # Final Individual Tolerance allocation across 5 modes in units of pm.
+    coeffs_table = np.zeros(
+        [NUM_MODES, tel.nseg])  # TODO : coeffs_table = sort_1d_mus_per_seg(mus, NUM_MODES, tel.nseg)
+    for qq in range(NUM_MODES):
+        for kk in range(tel.nseg):
+            coeffs_table[qq, kk] = mus[qq + kk * NUM_MODES]
+
+    # check temporal maps for individual modes
+    opt_wavescale = 13  # This is wavescale value corresponding to local minima contrast from the graph saved above.
+    Q_total = 1e3 * np.sqrt(np.mean(np.diag(0.0001 * opt_wavescale ** 2 * Qharris)))  # in pm
+    Q_individual = []
+    for mode in range(NUM_MODES):
+        Q_modes = 1e3 * np.sqrt(np.mean(0.0001 * opt_wavescale ** 2 * (coeffs_table[mode] ** 2)))  # in pm
+        Q_individual.append(Q_modes)
+
+    Q_individuals = np.array(Q_individual)
+    # print(Q_total, Q_individuals)
+    #
+    # Sort to individual modes
+    num_actuators = NUM_MODES * tel.nseg
+    coeffs_numaps = np.zeros([NUM_MODES, num_actuators])
+    for qq in range(NUM_MODES):
+        coeffs_tmp = np.zeros([num_actuators])
+        for kk in range(tel.nseg):
+            coeffs_tmp[qq + kk * NUM_MODES] = mus[qq + (kk) * NUM_MODES]  # arranged per modal basis
+        coeffs_numaps[qq] = coeffs_tmp  # arranged into 5 groups of 600 elements and in units of nm
+
+    Qharris_individual = []
+    for mode in range(NUM_MODES):
+        Qharris_per_mode = np.diag(np.asarray(coeffs_numaps[mode] ** 2))
+        Qharris_individual.append(Qharris_per_mode)
+
+    Qmode = np.array(Qharris_individual)
+
+    opt_tscale = 30
+    c_total = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise, detector_noise,
+                                        opt_tscale, flux * Starfactor, 0.0001 * opt_wavescale ** 2 * Qharris, niter,
+                                        tel.dh_mask, norm)
+
+    resultant_c_total = []
+    c0 = c_total['averaged_hist']
+    n_tmp1 = len(c0)
+    resultant_c_total.append(c0[n_tmp1 - 1])
+    print(resultant_c_total[0] - contrast_floor)
+    c0 = resultant_c_total[0] - contrast_floor
+
+    c_per_modes = []
+    for mode in range(NUM_MODES):
+        contrast = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise,
+                                             detector_noise, opt_tscale, flux * Starfactor,
+                                             0.0001 * opt_wavescale ** 2 * Qmode[mode],
+                                             niter, tel.dh_mask, norm)
+        resultant_contrast = []
+        c1 = contrast['averaged_hist']
+        n_tmp1 = len(c1)
+        resultant_contrast.append(c1[n_tmp1 - 1])
+        c_per_modes.append(resultant_contrast[0] - contrast_floor)
+
+    contrast_per_mode = np.array(c_per_modes)
+
+    df = pd.DataFrame()
+    df['Harris Modes'] = ['faceplate silvered', 'bulk', 'gradient radial', 'gradient X', 'gradient z', 'total']
+    df['Tolerances in pm'] = [Q_individuals[0], Q_individuals[1], Q_individuals[2],
+                              Q_individuals[3], Q_individuals[4], Q_total]
+    df['Contrast'] = [contrast_per_mode[0], contrast_per_mode[1], contrast_per_mode[2], contrast_per_mode[3],
+                      contrast_per_mode[4], c0]
+    print(df)
+    df.to_csv(os.path.join(data_dir, 'tolerance_table.csv'))

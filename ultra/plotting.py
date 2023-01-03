@@ -60,9 +60,10 @@ def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_di
             plt.savefig(os.path.join(data_dir, fname))
 
 
-def plot_iter_wf(Qharris, TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir):
+def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
+                 TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir):
     delta_wf = []
-    for wavescale in range(1, 15, 2):
+    for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         wf = np.sqrt(np.mean(np.diag(0.0001 * wavescale ** 2 * Qharris))) * 1e3
         delta_wf.append(wf)
 
@@ -90,7 +91,7 @@ def plot_iter_wf(Qharris, TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_
     plt.tick_params(axis='both', which='major', length=10, width=2)
     plt.tick_params(axis='both', which='minor', length=6, width=2)
     plt.grid()
-    plt.savefig(os.path.join(data_dir, 'cont_wf_%s.png' % C_TARGET))
+    plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.png' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)))
 
 
 def plot_pastis_matrix(pastis_matrix, data_dir, vcenter, vmin, vmax):

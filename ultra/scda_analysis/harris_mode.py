@@ -19,13 +19,13 @@ from ultra.plotting import plot_iter_wf, plot_multimode_surface_maps, plot_pasti
 if __name__ == '__main__':
 
     # Set number of rings
-    NUM_RINGS = 5
+    NUM_RINGS = 1
 
     # Define the type of WFE.
     WHICH_DM = 'harris_seg_mirror'
 
     # Define target contrast
-    C_TARGET = 1e-11
+    C_TARGET = 1e-10
 
     # Parameters for Temporal Ananlysis
     sptype = CONFIG_ULTRA.get('target', 'sptype')
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     # Calculate static tolerances.
     pastis_matrix = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'pastis_matrix.fits'))
     mus = calculate_segment_constraints(pastis_matrix, c_target=C_TARGET, coronagraph_floor=0)
-    np.savetxt(os.path.join(data_dir, 'mus_5Hex_%s.csv' % C_TARGET), mus, delimiter=',')
+    np.savetxt(os.path.join(data_dir, 'mus_2Hex_%s.csv' % C_TARGET), mus, delimiter=',')
 
     # Get the efields at wfs and science plane.
     efield_science_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_coron_real.fits'))
@@ -104,7 +104,10 @@ if __name__ == '__main__':
     unaberrated_coro_psf, ref = tel.calc_psf(ref=True, display_intermediate=False, norm_one_photon=True)
     norm = np.max(ref)
 
-    for wavescale in range(1, 15, 2):
+    wavescale_min = 100
+    wavescale_max = 240
+    wavescale_step = 20
+    for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         print('recurssive close loop batch estimation and wavescale %f' % wavescale)
         niter = 10
         timer1 = time.time()
@@ -120,17 +123,19 @@ if __name__ == '__main__':
             n_tmp1 = len(tmp1)
             result_wf_test.append(tmp1[n_tmp1 - 1])
 
-    plot_iter_wf(Qharris, -2, 5.5, 20, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir)
+    np.savetxt(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.csv' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)),
+               result_wf_test, delimiter=',')
+    plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
+                 TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir)
 
     # Final Individual Tolerance allocation across 5 modes in units of pm.
-    coeffs_table = np.zeros(
-        [NUM_MODES, tel.nseg])  # TODO : coeffs_table = sort_1d_mus_per_seg(mus, NUM_MODES, tel.nseg)
+    coeffs_table = np.zeros([NUM_MODES, tel.nseg])  # TODO : coeffs_table = sort_1d_mus_per_seg(mus, NUM_MODES, tel.nseg)
     for qq in range(NUM_MODES):
         for kk in range(tel.nseg):
             coeffs_table[qq, kk] = mus[qq + kk * NUM_MODES]
 
     # check temporal maps for individual modes
-    opt_wavescale = 13  # This is wavescale value corresponding to local minima contrast from the graph saved above.
+    opt_wavescale = 220  # This is wavescale value corresponding to local minima contrast from the graph saved above.
     Q_total = 1e3 * np.sqrt(np.mean(np.diag(0.0001 * opt_wavescale ** 2 * Qharris)))  # in pm
     Q_individual = []
     for mode in range(NUM_MODES):
@@ -156,7 +161,7 @@ if __name__ == '__main__':
 
     Qmode = np.array(Qharris_individual)
 
-    opt_tscale = 30
+    opt_tscale = 0.2
     c_total = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise, detector_noise,
                                         opt_tscale, flux * Starfactor, 0.0001 * opt_wavescale ** 2 * Qharris, niter,
                                         tel.dh_mask, norm)
@@ -170,6 +175,7 @@ if __name__ == '__main__':
 
     c_per_modes = []
     for mode in range(NUM_MODES):
+
         contrast = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise,
                                              detector_noise, opt_tscale, flux * Starfactor,
                                              0.0001 * opt_wavescale ** 2 * Qmode[mode],

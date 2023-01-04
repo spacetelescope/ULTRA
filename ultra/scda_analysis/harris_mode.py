@@ -19,7 +19,7 @@ from ultra.plotting import plot_iter_wf, plot_multimode_surface_maps, plot_pasti
 if __name__ == '__main__':
 
     # Set number of rings
-    NUM_RINGS = 1
+    NUM_RINGS = 3
 
     # Define the type of WFE.
     WHICH_DM = 'harris_seg_mirror'
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     # Calculate static tolerances.
     pastis_matrix = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'pastis_matrix.fits'))
     mus = calculate_segment_constraints(pastis_matrix, c_target=C_TARGET, coronagraph_floor=0)
-    np.savetxt(os.path.join(data_dir, 'mus_2Hex_%s.csv' % C_TARGET), mus, delimiter=',')
+    np.savetxt(os.path.join(data_dir, 'mus_Hex_%d_%s.csv' % (NUM_RINGS, C_TARGET)), mus, delimiter=',')
 
     # Get the efields at wfs and science plane.
     efield_science_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_coron_real.fits'))
@@ -98,15 +98,13 @@ if __name__ == '__main__':
     Nflux = 3
     Qharris = np.diag(np.asarray(mus ** 2))
 
-    res = np.zeros([Ntimes, Nwavescale, Nflux, 1])
-    result_wf_test = []
-
     unaberrated_coro_psf, ref = tel.calc_psf(ref=True, display_intermediate=False, norm_one_photon=True)
     norm = np.max(ref)
 
-    wavescale_min = 100
-    wavescale_max = 240
+    wavescale_min = 10   #TODO: plot works only for 7 wavescale values, chose the stepsize accordingly.
+    wavescale_max = 150
     wavescale_step = 20
+    result_wf_test = []
     for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         print('recurssive close loop batch estimation and wavescale %f' % wavescale)
         niter = 10
@@ -143,8 +141,7 @@ if __name__ == '__main__':
         Q_individual.append(Q_modes)
 
     Q_individuals = np.array(Q_individual)
-    # print(Q_total, Q_individuals)
-    #
+
     # Sort to individual modes
     num_actuators = NUM_MODES * tel.nseg
     coeffs_numaps = np.zeros([NUM_MODES, num_actuators])

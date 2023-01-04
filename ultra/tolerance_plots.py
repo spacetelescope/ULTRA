@@ -122,7 +122,7 @@ def plot_single_thermal_mode_all_hex(mu1, mu2, mu3, mu4, mu5, c0, mode, out_dir,
 
     plt.figure(figsize=(10, 10))
     plt.title(str(mode)+" modal constraints to achieve a dark hole contrast of "r"$10^{%d}$" % np.log10(c0), fontsize=10)
-    plt.ylabel("Weight per segment (in units of pm)", fontsize=15)
+    plt.ylabel("Weight per segment (in units of pm)", fontsize=20)
     plt.xlabel("Segment Number", fontsize=20)
     plt.tick_params(top=True, bottom=True, left=True, right=True, labelleft=True, labelbottom=True, labelsize=20)
     plt.plot(mus1_table[num] * 1e3, label="1-HexRingTelescope", marker="o")
@@ -139,17 +139,17 @@ def plot_single_thermal_mode_all_hex(mu1, mu2, mu3, mu4, mu5, c0, mode, out_dir,
     plt.legend(fontsize=15)
     plt.tight_layout()
     if save:
-        plt.savefig(os.path.join(out_dir, str(mode) + 'inner_mus_%s.png' % c0))
+        plt.savefig(os.path.join(out_dir, str(mode) + '_mus_%s.png' % c0))
 
 
 if __name__ == '__main__':
 
     # Thermal tolerance coefficients
-    mus5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_thermal/mus_harris_5Hex_1e-11.csv', delimiter=',')
-    mus4 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_thermal/mus_harris_4Hex_1e-11.csv', delimiter=',')
-    mus3 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_thermal/mus_harris_3Hex_1e-11.csv', delimiter=',')
-    mus2 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_thermal/mus_harris_2Hex_1e-11.csv', delimiter=',')
-    mus1 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_thermal/mus_harris_1Hex_1e-11.csv', delimiter=',')
+    mus5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_aas241/mus_Hex_5_1e-10.csv', delimiter=',')
+    mus4 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_aas241/mus_Hex_4_1e-10.csv', delimiter=',')
+    mus3 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_aas241/mus_Hex_3_1e-10.csv', delimiter=',')
+    mus2 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_aas241/mus_Hex_2_1e-10.csv', delimiter=',')
+    mus1 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_aas241/mus_Hex_1_1e-10.csv', delimiter=',')
 
     # Segment level zernike coefficients
     z5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_5.csv', delimiter=',')
@@ -158,11 +158,11 @@ if __name__ == '__main__':
     z2 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_2.csv', delimiter=',')
     z1 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_1.csv', delimiter=',')
 
-    resdir = '/Users/asahoo/Desktop/'
+    resdir = '/Users/asahoo/Desktop/data_repos/plots_aas241'
     # plot_mus_all_hexrings(mus1, mus2, mus3, mus4, mus5, 1e-11, resdir, save=False)
     # plot_single_thermal_mode_all_hex(z1, z2, z3, z4, z5, 1e-11,
     #                                  mode="Astig", out_dir=resdir, save=True, inner_segments=True)
 
-    plot_single_thermal_mode_all_hex(mus1, mus2, mus3, mus4, mus5, 1e-11,
-                                     mode="Faceplates Silvered", out_dir=resdir, save=True, inner_segments=True)
+    plot_single_thermal_mode_all_hex(mus1, mus2, mus3, mus4, mus5, 1e-10,
+                                     mode="Faceplates Silvered", out_dir=resdir, save=True, inner_segments=False)
 

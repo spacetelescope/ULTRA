@@ -19,7 +19,7 @@ from ultra.plotting import plot_iter_wf, plot_multimode_surface_maps, plot_pasti
 if __name__ == '__main__':
 
     # Set number of rings
-    NUM_RINGS = 3
+    NUM_RINGS = 1
 
     # Define the type of WFE.
     WHICH_DM = 'harris_seg_mirror'
@@ -70,6 +70,7 @@ if __name__ == '__main__':
     ref_coron = fits.getdata(os.path.join(data_dir, 'ref_e0_coron.fits'))
     ref_obwfs = fits.getdata(os.path.join(data_dir, 'ref_e0_wfs.fits'))
 
+    print('Computing Sensitivity Matrices..')
     # Compute sensitivity matrices.
     sensitivity_matrices = calculate_sensitivity_matrices(ref_coron, ref_obwfs, efield_science_real,
                                                           efield_science_imag,
@@ -80,6 +81,7 @@ if __name__ == '__main__':
     e0_wfs = sensitivity_matrices['ref_wfs_plane']
 
     # Compute Temporal tolerances.
+    print('Computing close loop contrast estimation..')
 
     # Compute Star flux.
     npup = int(np.sqrt(tel.pupil_grid.x.shape[0]))
@@ -101,8 +103,8 @@ if __name__ == '__main__':
     unaberrated_coro_psf, ref = tel.calc_psf(ref=True, display_intermediate=False, norm_one_photon=True)
     norm = np.max(ref)
 
-    wavescale_min = 10   #TODO: plot works only for 7 wavescale values, chose the stepsize accordingly.
-    wavescale_max = 150
+    wavescale_min = 100   #TODO: plot works only for 7 wavescale values, chose the stepsize accordingly.
+    wavescale_max = 240
     wavescale_step = 20
     result_wf_test = []
     for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
@@ -132,8 +134,11 @@ if __name__ == '__main__':
         for kk in range(tel.nseg):
             coeffs_table[qq, kk] = mus[qq + kk * NUM_MODES]
 
+    print('Computing tolerance table...')
     # check temporal maps for individual modes
-    opt_wavescale = 220  # This is wavescale value corresponding to local minima contrast from the graph saved above.
+    opt_wavescale = 200  # This is wavescale value corresponding to local minima contrast from the graph saved above.
+    opt_tscale = 0.1
+
     Q_total = 1e3 * np.sqrt(np.mean(np.diag(0.0001 * opt_wavescale ** 2 * Qharris)))  # in pm
     Q_individual = []
     for mode in range(NUM_MODES):
@@ -158,7 +163,6 @@ if __name__ == '__main__':
 
     Qmode = np.array(Qharris_individual)
 
-    opt_tscale = 0.2
     c_total = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise, detector_noise,
                                         opt_tscale, flux * Starfactor, 0.0001 * opt_wavescale ** 2 * Qharris, niter,
                                         tel.dh_mask, norm)
@@ -191,5 +195,11 @@ if __name__ == '__main__':
                               Q_individuals[3], Q_individuals[4], Q_total]
     df['Contrast'] = [contrast_per_mode[0], contrast_per_mode[1], contrast_per_mode[2], contrast_per_mode[3],
                       contrast_per_mode[4], c0]
+    df[''] = None
+    df['Telescope'] = ['total segs', 'diam', 'seg diam','contrast_floor', 'iwa', 'owa']
+    df['Values'] = [tel.nseg, tel.diam, tel.harris_seg_diameter, contrast_floor, tel.iwa, tel.owa]
+    df['opt_wv'] = [opt_wavescale, '', '', '', '', '']
+    df['opt_t'] = [opt_tscale,  '', '', '', '', '']
     print(df)
     df.to_csv(os.path.join(data_dir, 'tolerance_table.csv'))
+    print(f'All analysis is saved to {data_dir}.')

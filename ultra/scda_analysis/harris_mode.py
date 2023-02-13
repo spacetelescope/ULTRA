@@ -14,7 +14,7 @@ from pastis.util import dh_mean
 from ultra.config import CONFIG_ULTRA
 from ultra.util import calculate_sensitivity_matrices
 from ultra.close_loop_analysis import req_closedloop_calc_batch
-from ultra.plotting import plot_iter_wf, plot_multimode_surface_maps, plot_pastis_matrix
+from ultra.plotting import plot_iter_wf
 
 if __name__ == '__main__':
 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
         NUM_MODES = 5 # TODO: works only for thermal modes currently
 
     run_matrix = MatrixEfieldHex(which_dm=WHICH_DM, dm_spec=DM_SPEC, num_rings=NUM_RINGS,
-                                 calc_science=True, calc_wfs=True,
+                                 calc_science=True, calc_wfs=False,
                                  initial_path=CONFIG_PASTIS.get('local', 'local_data_path'), norm_one_photon=True)
 
     run_matrix.calc()

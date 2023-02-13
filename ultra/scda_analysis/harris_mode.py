@@ -37,14 +37,22 @@ if __name__ == '__main__':
     dark_current = CONFIG_ULTRA.getfloat('detector', 'dark_current')
     CIC = CONFIG_ULTRA.getfloat('detector', 'dark_current')
 
+    # Set close loop parameters.
+    detector_noise = CONFIG_ULTRA.getfloat('detector', 'detector_noise')
+    niter = CONFIG_ULTRA.getint('close_loop', 'niter')
+    TimeMinus = CONFIG_ULTRA.getfloat('close_loop', 'TimeMinus')
+    TimePlus = CONFIG_ULTRA.getfloat('close_loop', 'TimePlus')
+    Ntimes = CONFIG_ULTRA.getint('close_loop', 'Ntimes')
+    Nwavescale = CONFIG_ULTRA.getfloat('close_loop', 'Nwavescale')
+
     if WHICH_DM == 'harris_seg_mirror':
         fpath = CONFIG_PASTIS.get('LUVOIR', 'harris_data_path')  # path to Harris spreadsheet
         pad_orientations = np.pi / 2 * np.ones(CONFIG_PASTIS.getint('LUVOIR', 'nb_subapertures'))
         DM_SPEC = (fpath, pad_orientations, True, False, False)
-        NUM_MODES = 5 # TODO: works only for thermal modes currently
+        NUM_MODES = 5
 
     run_matrix = MatrixEfieldHex(which_dm=WHICH_DM, dm_spec=DM_SPEC, num_rings=NUM_RINGS,
-                                 calc_science=True, calc_wfs=False,
+                                 calc_science=True, calc_wfs=True,
                                  initial_path=CONFIG_PASTIS.get('local', 'local_data_path'), norm_one_photon=True)
 
     run_matrix.calc()
@@ -53,7 +61,7 @@ if __name__ == '__main__':
 
     tel = run_matrix.simulator
 
-    unaber_psf = fits.getdata(os.path.join(data_dir, 'unaberrated_coro_psf.fits'))  # already normalized to max of direct pdf
+    unaber_psf = fits.getdata(os.path.join(data_dir, 'unaberrated_coro_psf.fits'))  # already normalized to max of direct psf
     dh_mask_shaped = tel.dh_mask.shaped
     contrast_floor = dh_mean(unaber_psf, dh_mask_shaped)
 
@@ -90,14 +98,6 @@ if __name__ == '__main__':
     Nph = star_flux.value * 15 ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
     flux = Nph
 
-    # Set close loop parameters.
-    detector_noise = 0.0
-    niter = 10
-    TimeMinus = -2
-    TimePlus = 5.5
-    Ntimes = 20
-    Nwavescale = 8
-    Nflux = 3
     Qharris = np.diag(np.asarray(mus ** 2))
 
     unaberrated_coro_psf, ref = tel.calc_psf(ref=True, display_intermediate=False, norm_one_photon=True)
@@ -171,7 +171,6 @@ if __name__ == '__main__':
     c0 = c_total['averaged_hist']
     n_tmp1 = len(c0)
     resultant_c_total.append(c0[n_tmp1 - 1])
-    print(resultant_c_total[0] - contrast_floor)
     c0 = resultant_c_total[0] - contrast_floor
 
     c_per_modes = []

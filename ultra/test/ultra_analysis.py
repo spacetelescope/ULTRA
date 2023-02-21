@@ -2,7 +2,6 @@ import numpy as np
 
 from pastis.config import CONFIG_PASTIS
 from pastis.matrix_generation.matrix_from_efields import MatrixEfieldLuvoirA
-from pastis.ultra_analysis import MultiModeAnalysis
 
 
 if __name__ == '__main__':

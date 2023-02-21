@@ -103,7 +103,7 @@ if __name__ == '__main__':
     unaberrated_coro_psf, ref = tel.calc_psf(ref=True, display_intermediate=False, norm_one_photon=True)
     norm = np.max(ref)
 
-    wavescale_min = 100   #TODO: plot works only for 7 wavescale values, chose the stepsize accordingly.
+    wavescale_min = 100    # TODO: plot works only for 7 wavescale values, chose the stepsize accordingly.
     wavescale_max = 240
     wavescale_step = 20
     result_wf_test = []
@@ -195,10 +195,10 @@ if __name__ == '__main__':
     df['Contrast'] = [contrast_per_mode[0], contrast_per_mode[1], contrast_per_mode[2], contrast_per_mode[3],
                       contrast_per_mode[4], c0]
     df[''] = None
-    df['Telescope'] = ['total segs', 'diam', 'seg diam','contrast_floor', 'iwa', 'owa']
+    df['Telescope'] = ['total segs', 'diam', 'seg diam', 'contrast_floor', 'iwa', 'owa']
     df['Values'] = [tel.nseg, tel.diam, tel.harris_seg_diameter, contrast_floor, tel.iwa, tel.owa]
     df['opt_wv'] = [opt_wavescale, '', '', '', '', '']
-    df['opt_t'] = [opt_tscale,  '', '', '', '', '']
+    df['opt_t'] = [opt_tscale, '', '', '', '', '']
     print(df)
     df.to_csv(os.path.join(data_dir, 'tolerance_table.csv'))
     print(f'All analysis is saved to {data_dir}.')

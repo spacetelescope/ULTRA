@@ -8,7 +8,7 @@ def matrix_subsample(matrix, n, m):
     breadth = matrix.shape[1] // m  # block breadth
     for i in range(n):
         for j in range(m):
-            sum_pixels = np.sum(matrix[i*length: (i+1)*length, j*breadth: (j+1)*breadth])
+            sum_pixels = np.sum(matrix[i * length: (i + 1) * length, j * breadth: (j + 1) * breadth])
             arr_sum.append(sum_pixels)
     data_reduced = np.reshape(np.array(arr_sum), (n, m))
     return data_reduced
@@ -108,5 +108,5 @@ def calc_mean_tolerance_per_mode(opt_wavescale, mus, nmodes, nsegs, tscale):
         per_mode_dynamic_tolerances.append(individual_dynamic_tolerance)
 
     per_mode_temporal_tolerances = np.array(per_mode_dynamic_tolerances)
-    return total_dynamic_tolerances, np.sqrt(np.mean(per_mode_temporal_tolerances))*1e3*tscale
+    return total_dynamic_tolerances, np.sqrt(np.mean(per_mode_temporal_tolerances)) * 1e3 * tscale
 

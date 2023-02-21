@@ -1,8 +1,8 @@
 ## ULTRA
 ULTRA stands for ULtra stable Telescope Research and Analysis. 
 This repository comprises analytical algorithms which is used to compute
-wavefront tolerances of segmented primary mirror relevant to the scenario of exo-earth imaging
-with future large telescope. It leverages the PASTIS algorithm, and a close-loop recursive algorithm to estimate 
+wavefront tolerances for segmented primary mirror relevant to the scenario of exo-earth imaging
+with future large space telescopes. It leverages the PASTIS algorithm, and a close-loop recursive algorithm to estimate 
 the static and dynamic wavefront tolerances for segmented mirrors during a science observation.
 
 

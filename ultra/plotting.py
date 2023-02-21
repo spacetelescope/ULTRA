@@ -81,7 +81,7 @@ def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
     plt.plot(texp, result_wf_test[100:120] - contrast_floor, label=r'$\Delta_{wf}= %.2f\ pm/s$' % (delta_wf[5]))
     plt.plot(texp, result_wf_test[120:140] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[6]))
     plt.xlabel("$t_{WFS}$ in secs", fontsize=20)
-    plt.ylabel("$\Delta$ contrast", fontsize=20)
+    plt.ylabel(r"$ \Delta $ contrast", fontsize=20)
     plt.yscale('log')
     plt.xscale('log')
     plt.legend(loc='upper center', fontsize=20)

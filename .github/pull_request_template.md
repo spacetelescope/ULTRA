@@ -10,8 +10,7 @@ Fixes # (issue).
 ## Tasks before review
 
 <!--
-Provide a list of tasks that still need to be finished in this PR. 
-You can remove this section if this is a finished PR already.
+Provide a list of tasks that is meant to be finished in this PR.
 -->
 
 ## Add Pictures

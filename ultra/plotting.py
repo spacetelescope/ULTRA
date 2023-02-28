@@ -6,10 +6,7 @@ from matplotlib.colors import TwoSlopeNorm, LinearSegmentedColormap
 from pastis.util import sort_1d_mus_per_actuator
 
 
-def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_dir=None, fname=None):
-
-    # TODO: Adapted from pastis.plotting.plot_multimode_surface_maps,
-    #  and will be removed once the PASTIS PR 151 is merged.
+def plot_multimode_surface_maps(type, tel, mus, num_modes, mirror, cmin, cmax, wavescale=None, data_dir=None, fname=None):
 
     """Creates surface deformation maps (not WFE) for localized wavefront aberrations.
     The input mode coefficients 'mus' are in units of *WFE* and need to be grouped by segment, meaning the array holds
@@ -17,6 +14,8 @@ def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_di
         mode1 on seg1, mode2 on seg1, ..., mode'nmodes' on seg1, mode1 on seg2, mode2 on seg2 and so on.
     Parameters:
     -----------
+    type: str
+        can be either of 'static' and 'dynamic'
     tel : class instance of internal simulator
         the simulator to plot the surface maps for
     mus : 1d array
@@ -52,11 +51,20 @@ def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_di
     plot_norm = TwoSlopeNorm(vcenter=0, vmin=cmin, vmax=cmax)
     for i in range(num_modes):
         plt.figure(figsize=(7, 5))
-        hcipy.imshow_field((mu_maps[i]) * 1e12, norm=plot_norm, cmap='RdBu')
-        plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True)
-        cbar = plt.colorbar()
+
+        if type == 'dynamic':
+            if wavescale is not None:
+                scale = np.sqrt(0.0001 * wavescale ** 2)
+                hcipy.imshow_field((mu_maps[i]) * 1e12 * scale, norm=plot_norm, cmap='RdBu')
+                cbar = plt.colorbar()
+                cbar.set_label("Surface (pm/s)", fontsize=10)
+        else:
+            hcipy.imshow_field((mu_maps[i]) * 1e12, norm=plot_norm, cmap='RdBu')
+            cbar = plt.colorbar()
+            cbar.set_label("Surface (pm)", fontsize=10)
+
         cbar.ax.tick_params(labelsize=10)
-        cbar.set_label("Surface (pm)", fontsize=10)
+        plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True)
         plt.tight_layout()
 
         if data_dir is not None:

@@ -7,6 +7,10 @@ from pastis.util import sort_1d_mus_per_actuator
 
 
 def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_dir=None, fname=None):
+
+    # TODO: Adapted from pastis.plotting.plot_multimode_surface_maps,
+    #  and will be removed once the PASTIS PR 151 is merged.
+
     """Creates surface deformation maps (not WFE) for localized wavefront aberrations.
     The input mode coefficients 'mus' are in units of *WFE* and need to be grouped by segment, meaning the array holds
     the mode coefficients as:
@@ -56,8 +60,9 @@ def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_di
         plt.tight_layout()
 
         if data_dir is not None:
-            fname += f'_mode_{i}.png'
-            plt.savefig(os.path.join(data_dir, fname))
+            os.makedirs(os.path.join(data_dir, 'mu_maps'), exist_ok=True)
+            image_name = fname + f'_mode_{i}.pdf'
+            plt.savefig(os.path.join(data_dir, 'mu_maps', image_name))
 
 
 def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,

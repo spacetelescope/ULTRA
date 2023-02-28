@@ -95,18 +95,36 @@ def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
 
 
 def plot_pastis_matrix(pastis_matrix, data_dir, vcenter, vmin, vmax):
+    """
+    Parameters
+    ----------
+    pastis_matrix : 2d array
+        PASTIS matrix, where each element is stored in units of contrast/nm**2.
+    data_dir : str
+        path to save the image
+    vcenter : float
+        center of matplotlib colorbar
+    vmin : float
+        minimum extent of matplotlib colorbar
+    vmax : float
+        maximum extent of matplotlib colorbar
+    """
     clist = [(0.1, 0.6, 1.0), (0.05, 0.05, 0.05), (0.8, 0.5, 0.1)]
     blue_orange_divergent = LinearSegmentedColormap.from_list("custom_blue_orange", clist)
 
-    plt.figure(figsize=(10, 8))
+    list_of_ticks = np.arange(0, pastis_matrix.shape[0], 20)
+
+    plt.figure(figsize=(6, 4), dpi=150)
     norm_mat = TwoSlopeNorm(vcenter, vmin, vmax)
-    plt.imshow(pastis_matrix, cmap=blue_orange_divergent, norm=norm_mat)
-    plt.title(r"PASTIS matrix $M$", fontsize=20)
-    plt.xlabel("Mode Index", fontsize=20)
-    plt.ylabel("Mode Index", fontsize=20)
-    plt.tick_params(labelsize=15)
+    plt.imshow(pastis_matrix, origin='lower', cmap=blue_orange_divergent, norm=norm_mat)
+    plt.title(r"PASTIS matrix $M$", fontsize=15)
+    plt.xlabel("Mode Index", fontsize=15)
+    plt.ylabel("Mode Index", fontsize=15)
+    plt.tick_params(labelsize=10)
+    plt.xticks(list_of_ticks)
+    plt.yticks(list_of_ticks)
     cbar = plt.colorbar(fraction=0.046, pad=0.04)
-    cbar.set_label(r"in units of ${contrast\ per\ {nm}^2}$", fontsize=15)
+    cbar.set_label(r"in units of ${contrast\ per\ {nm}^2}$", fontsize=10)
     plt.tight_layout()
 
     plt.savefig(os.path.join(data_dir, 'pastis_matrix.png'))

@@ -18,7 +18,7 @@ from ultra.plotting import plot_iter_wf, plot_iter_mv
 if __name__ == '__main__':
 
     # Set number of rings
-    NUM_RINGS = 1
+    NUM_RINGS = 5
 
     # Define the type of WFE.
     WHICH_DM = 'harris_seg_mirror'
@@ -214,3 +214,5 @@ if __name__ == '__main__':
 
     print(tables[0], '\n', tables[1])
     print(f'All analysis is saved to {data_dir}.')
+
+    print(np.sqrt((Q_individuals[0]**2 + Q_individuals[1]**2 + Q_individuals[2]**2 + Q_individuals[3]**2 + Q_individuals[4]**2)/5))

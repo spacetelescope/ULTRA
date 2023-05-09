@@ -120,6 +120,67 @@ def plot_single_thermal_mode_all_hex(mu1, mu2, mu3, mu4, mu5, c0, mode, out_dir,
     elif mode == "Gradiant Z axial" or mode == "Astig":
         num = 4
 
+    # For 1 Hex:
+    ring1_mean = 0
+    for i in range(1, 7):
+        ring1_mean = ring1_mean + mus1_table[num, i] * 1e3
+    print("1Hex:", "ring1:", ring1_mean/6)
+
+    # For 2 Hex:
+    ring1_mean = 0
+    for i in range(1, 7):
+        ring1_mean = ring1_mean + mus2_table[num, i] * 1e3
+    ring2_mean = 0
+    for i in range(7, 19):
+        ring2_mean = ring2_mean + mus2_table[num, i] * 1e3
+
+    print("2Hex:", "ring1:", ring1_mean / 6, "ring2:", ring2_mean / 12)
+
+    # For 3 Hex:
+    ring1_mean = 0
+    for i in range(1, 7):
+        ring1_mean = ring1_mean + mus3_table[num, i] * 1e3
+    ring2_mean = 0
+    for i in range(7, 19):
+        ring2_mean = ring2_mean + mus3_table[num, i] * 1e3
+    ring3_mean = 0
+    for i in range(19, 31):
+        ring3_mean = ring3_mean + mus3_table[num, i] * 1e3
+    print("3Hex:", "ring1:", ring1_mean / 6, "ring2:", ring2_mean / 12, "ring3:" , ring3_mean/12)
+
+    # For 4 Hex:
+    ring1_mean = 0
+    for i in range(1, 7):
+        ring1_mean = ring1_mean + mus4_table[num, i] * 1e3
+    ring2_mean = 0
+    for i in range(7, 19):
+        ring2_mean = ring2_mean + mus4_table[num, i] * 1e3
+    ring3_mean = 0
+    for i in range(19, 37):
+        ring3_mean = ring3_mean + mus4_table[num, i] * 1e3
+    ring4_mean = 0
+    for i in range(37, 55):
+        ring4_mean = ring4_mean + mus4_table[num, i] * 1e3
+    print("4Hex:", "ring1:", ring1_mean / 6, "ring2:", ring2_mean / 12, "ring3:", ring3_mean / 12, "ring4:", ring4_mean/18)
+
+    # For 5 Hex:
+    ring1_mean = 0
+    for i in range(1, 7):
+        ring1_mean = ring1_mean + mus5_table[num, i] * 1e3
+    ring2_mean = 0
+    for i in range(7, 19):
+        ring2_mean = ring2_mean + mus5_table[num, i] * 1e3
+    ring3_mean = 0
+    for i in range(19, 37):
+        ring3_mean = ring3_mean + mus5_table[num, i] * 1e3
+    ring4_mean = 0
+    for i in range(37, 61):
+        ring4_mean = ring4_mean + mus5_table[num, i] * 1e3
+    ring5_mean = 0
+    for i in range(61, 85):
+        ring5_mean = ring5_mean + mus5_table[num, i] * 1e3
+    print("5Hex:", "ring1:", ring1_mean / 6, "ring2:", ring2_mean / 12, "ring3:", ring3_mean / 12, "ring4:", ring4_mean /24, "ring5:", ring5_mean/24)
+
     plt.figure(figsize=(10, 10))
     plt.title(str(mode) + " modal constraints to achieve a dark hole contrast of "r"$10^{%d}$" % np.log10(c0), fontsize=10)
     plt.ylabel("Weight per segment (in units of pm)", fontsize=20)
@@ -144,25 +205,28 @@ def plot_single_thermal_mode_all_hex(mu1, mu2, mu3, mu4, mu5, c0, mode, out_dir,
 
 if __name__ == '__main__':
 
-    # Thermal tolerance coefficients
-    mus5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_aas241/mus_Hex_5_1e-10.csv', delimiter=',')
-    mus4 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_aas241/mus_Hex_4_1e-10.csv', delimiter=',')
-    mus3 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_aas241/mus_Hex_3_1e-10.csv', delimiter=',')
-    mus2 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_aas241/mus_Hex_2_1e-10.csv', delimiter=',')
-    mus1 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_aas241/mus_Hex_1_1e-10.csv', delimiter=',')
+    # Thermal tolerance coefficients for DH 1e-11
+    mus5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_5_1e-11.csv', delimiter=',')
+    mus4 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_4_1e-11.csv', delimiter=',')
+    mus3 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_3_1e-11.csv', delimiter=',')
+    mus2 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_2_1e-11.csv', delimiter=',')
+    mus1 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_1_1e-11.csv', delimiter=',')
 
     # Segment level zernike coefficients
-    z5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_5.csv', delimiter=',')
-    z4 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_4.csv', delimiter=',')
-    z3 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_3.csv', delimiter=',')
-    z2 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_2.csv', delimiter=',')
-    z1 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_1.csv', delimiter=',')
+    # z5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_5.csv', delimiter=',')
+    # z4 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_4.csv', delimiter=',')
+    # z3 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_3.csv', delimiter=',')
+    # z2 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_2.csv', delimiter=',')
+    # z1 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_1.csv', delimiter=',')
 
-    resdir = '/Users/asahoo/Desktop/data_repos/plots_aas241'
+    resdir = '/Users/asahoo/Desktop/data_repos/paper2/'
     # plot_mus_all_hexrings(mus1, mus2, mus3, mus4, mus5, 1e-11, resdir, save=False)
     # plot_single_thermal_mode_all_hex(z1, z2, z3, z4, z5, 1e-11,
     #                                  mode="Astig", out_dir=resdir, save=True, inner_segments=True)
 
-    plot_single_thermal_mode_all_hex(mus1, mus2, mus3, mus4, mus5, 1e-10,
-                                     mode="Faceplates Silvered", out_dir=resdir, save=True, inner_segments=False)
+    plot_single_thermal_mode_all_hex(mus1, mus2, mus3, mus4, mus5, 1e-11,
+                                     mode="Gradiant Z axial", out_dir=resdir, save=True, inner_segments=False)
+
+
+
 

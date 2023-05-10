@@ -56,8 +56,9 @@ def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_di
         plt.tight_layout()
 
         if data_dir is not None:
-            fname += f'_mode_{i}.png'
-            plt.savefig(os.path.join(data_dir, fname))
+            os.makedirs(os.path.join(data_dir, 'mu_maps'), exist_ok=True)
+            image_name = fname + f'_mode_{i}.pdf'
+            plt.savefig(os.path.join(data_dir, 'mu_maps', image_name))
 
 
 def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,

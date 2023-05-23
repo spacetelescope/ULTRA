@@ -9,3 +9,5 @@ dependencies:
   - pytest
   - python=3.10
   - conda-forge::hcipy<=0.4
+  - pip:
+    - exoscene

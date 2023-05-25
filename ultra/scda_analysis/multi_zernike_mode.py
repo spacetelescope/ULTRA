@@ -192,14 +192,14 @@ if __name__ == '__main__':
     contrast_per_mode = np.array(c_per_modes)
 
     df = pd.DataFrame()
-    df['Segment zernike Modes'] = ['Z0','Z1','Z2','Z3','Z4','Z5','Z6','All']
+    df['Segment zernike Modes'] = ['Z0', 'Z1', 'Z2', 'Z3', 'Z4', 'Z5', 'Z6', 'All']
     df['Tolerances in pm'] = [Q_individuals[0], Q_individuals[1], Q_individuals[2],
                               Q_individuals[3], Q_individuals[4], Q_individuals[5], Q_individuals[6], Q_total]
     df['Contrast'] = [contrast_per_mode[0], contrast_per_mode[1], contrast_per_mode[2], contrast_per_mode[3],
-                      contrast_per_mode[4],contrast_per_mode[5],contrast_per_mode[6], c0]
+                      contrast_per_mode[4], contrast_per_mode[5], contrast_per_mode[6], c0]
     df[''] = None
     df['Telescope'] = ['total segs', 'diam', 'seg diam', 'contrast_floor', 'iwa', 'owa']
-    df['Values'] = [tel.nseg, tel.diam, tel.diam/(2*NUM_RINGS+1), contrast_floor, tel.iwa, tel.owa]
+    df['Values'] = [tel.nseg, tel.diam, tel.diam / (2 * NUM_RINGS + 1), contrast_floor, tel.iwa, tel.owa]
     df['opt_wv'] = [opt_wavescale, '', '', '', '', '']
     df['opt_t'] = [opt_tscale, '', '', '', '', '']
     print(df)

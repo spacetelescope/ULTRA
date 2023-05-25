@@ -75,17 +75,15 @@ def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
     result_wf_test = np.asarray(result_wf_test)
     plt.figure(figsize=(15, 10))
 
-    for pp in range(0,len(wavescale_vec)):
+    for pp in range(0, len(wavescale_vec)):
         plt.title('Target contrast = %s, Vmag= %s' % (C_TARGET, Vmag), fontdict=font)
-        plt.plot(texp, result_wf_test[pp*Ntimes:(pp+1)*Ntimes] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[pp]))
+        plt.plot(texp, result_wf_test[pp * Ntimes:(pp + 1) * Ntimes] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[pp]))
         plt.xlabel("$t_{WFS}$ in secs", fontsize=20)
         plt.ylabel(r"$ \Delta $ contrast", fontsize=20)
         plt.yscale('log')
         plt.xscale('log')
         plt.legend(loc='upper center', fontsize=20)
-        plt.tick_params(top=True, bottom=True, left=True,
-                    right=True, labelleft=True, labelbottom=True,
-                    labelsize=20)
+        plt.tick_params(top=True, bottom=True, left=True, right=True, labelleft=True, labelbottom=True, labelsize=20)
         plt.tick_params(axis='both', which='major', length=10, width=2)
         plt.tick_params(axis='both', which='minor', length=6, width=2)
         plt.grid()

@@ -93,41 +93,6 @@ def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
     plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.png' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)))
 
 
-#
-# def plot_iter_wf_save(Qharris, wavescale_min, wavescale_max, wavescale_step,
-#                  TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir):
-#     delta_wf = []
-#     for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
-#         wf = np.sqrt(np.mean(np.diag(0.0001 * wavescale ** 2 * Qharris))) * 1e3
-#         delta_wf.append(wf)
-#
-#     texp = np.logspace(TimeMinus, TimePlus, Ntimes)
-#     font = {'family': 'serif', 'color': 'black', 'weight': 'normal', 'size': 20}
-#
-#     result_wf_test = np.asarray(result_wf_test)
-#     plt.figure(figsize=(15, 10))
-#     plt.title('Target contrast = %s, Vmag= %s' % (C_TARGET, Vmag), fontdict=font)
-#     plt.plot(texp, result_wf_test[0:20] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[0]))
-#     plt.plot(texp, result_wf_test[20:40] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[1]))
-#     plt.plot(texp, result_wf_test[40:60] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[2]))
-#     plt.plot(texp, result_wf_test[60:80] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[3]))
-#     plt.plot(texp, result_wf_test[80:100] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[4]))
-#     plt.plot(texp, result_wf_test[100:120] - contrast_floor, label=r'$\Delta_{wf}= %.2f\ pm/s$' % (delta_wf[5]))
-#     plt.plot(texp, result_wf_test[120:140] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[6]))
-#     plt.xlabel("$t_{WFS}$ in secs", fontsize=20)
-#     plt.ylabel(r"$ \Delta $ contrast", fontsize=20)
-#     plt.yscale('log')
-#     plt.xscale('log')
-#     plt.legend(loc='upper center', fontsize=20)
-#     plt.tick_params(top=True, bottom=True, left=True,
-#                     right=True, labelleft=True, labelbottom=True,
-#                     labelsize=20)
-#     plt.tick_params(axis='both', which='major', length=10, width=2)
-#     plt.tick_params(axis='both', which='minor', length=6, width=2)
-#     plt.grid()
-#     plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.png' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)))
-#
-
 def plot_pastis_matrix(pastis_matrix, data_dir, vcenter, vmin, vmax):
     clist = [(0.1, 0.6, 1.0), (0.05, 0.05, 0.05), (0.8, 0.5, 0.1)]
     blue_orange_divergent = LinearSegmentedColormap.from_list("custom_blue_orange", clist)

@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm, LinearSegmentedColormap
 from pastis.util import sort_1d_mus_per_actuator
+import pandas as pd
 
 
 def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_dir=None, fname=None):
@@ -107,3 +108,20 @@ def plot_pastis_matrix(pastis_matrix, data_dir, vcenter, vmin, vmax):
     plt.tight_layout()
 
     plt.savefig(os.path.join(data_dir, 'pastis_matrix.png'))
+
+
+def plot_tolerance_table_harris(tel, Q_individuals, Q_total, contrast_per_mode,
+                                c0, contrast_floor, opt_wavescale, opt_tscale, data_dir):
+    df = pd.DataFrame()
+    df['Harris Modes'] = ['faceplate silvered', 'bulk', 'gradient radial', 'gradient X', 'gradient z', 'total']
+    df['Tolerances in pm'] = [Q_individuals[0], Q_individuals[1], Q_individuals[2],
+                              Q_individuals[3], Q_individuals[4], Q_total]
+    df['Contrast'] = [contrast_per_mode[0], contrast_per_mode[1], contrast_per_mode[2], contrast_per_mode[3],
+                      contrast_per_mode[4], c0]
+    df[''] = None
+    df['Telescope'] = ['total segs', 'diam', 'seg diam', 'contrast_floor', 'iwa', 'owa']
+    df['Values'] = [tel.nseg, tel.diam, tel.harris_seg_diameter, contrast_floor, tel.iwa, tel.owa]
+    df['opt_wv'] = [opt_wavescale, '', '', '', '', '']
+    df['opt_t'] = [opt_tscale, '', '', '', '', '']
+    print(df)
+    df.to_csv(os.path.join(data_dir, 'tolerance_table.csv'))

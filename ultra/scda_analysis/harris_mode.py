@@ -12,7 +12,7 @@ from pastis.pastis_analysis import calculate_segment_constraints
 from pastis.util import dh_mean
 
 from ultra.config import CONFIG_ULTRA
-from ultra.util import calculate_sensitivity_matrices
+from ultra.util import calculate_sensitivity_matrices, sort_1d_mus_per_seg
 from ultra.close_loop_analysis import req_closedloop_calc_batch
 from ultra.plotting import plot_iter_wf
 
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     WHICH_DM = 'harris_seg_mirror'
 
     # Define target contrast
-    C_TARGET = 1e-10
+    C_TARGET = 1e-11
 
     # Parameters for Temporal Ananlysis
     sptype = CONFIG_ULTRA.get('target', 'sptype')
@@ -129,10 +129,7 @@ if __name__ == '__main__':
                  TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir)
 
     # Final Individual Tolerance allocation across 5 modes in units of pm.
-    coeffs_table = np.zeros([NUM_MODES, tel.nseg])  # TODO : coeffs_table = sort_1d_mus_per_seg(mus, NUM_MODES, tel.nseg)
-    for qq in range(NUM_MODES):
-        for kk in range(tel.nseg):
-            coeffs_table[qq, kk] = mus[qq + kk * NUM_MODES]
+    coeffs_table = sort_1d_mus_per_seg(mus, NUM_MODES, tel.nseg)
 
     print('Computing tolerance table...')
     # check temporal maps for individual modes

@@ -4,7 +4,6 @@ import exoscene.star
 import numpy as np
 import os
 import time
-import pandas as pd
 
 from pastis.config import CONFIG_PASTIS
 from pastis.matrix_generation.matrix_from_efields import MatrixEfieldHex
@@ -12,14 +11,14 @@ from pastis.pastis_analysis import calculate_segment_constraints
 from pastis.util import dh_mean
 
 from ultra.config import CONFIG_ULTRA
-from ultra.util import calculate_sensitivity_matrices
+from ultra.util import calculate_sensitivity_matrices, generate_tolerance_table
 from ultra.close_loop_analysis import req_closedloop_calc_batch
 from ultra.plotting import plot_iter_wf
 
 if __name__ == '__main__':
 
     # Set number of rings
-    NUM_RINGS = 5
+    NUM_RINGS = 1
 
     # Define the type of WFE.
     WHICH_DM = 'seg_mirror'
@@ -191,17 +190,6 @@ if __name__ == '__main__':
 
     contrast_per_mode = np.array(c_per_modes)
 
-    df = pd.DataFrame()
-    df['Segment zernike Modes'] = ['Z0', 'Z1', 'Z2', 'Z3', 'Z4', 'Z5', 'Z6', 'All']
-    df['Tolerances in pm'] = [Q_individuals[0], Q_individuals[1], Q_individuals[2],
-                              Q_individuals[3], Q_individuals[4], Q_individuals[5], Q_individuals[6], Q_total]
-    df['Contrast'] = [contrast_per_mode[0], contrast_per_mode[1], contrast_per_mode[2], contrast_per_mode[3],
-                      contrast_per_mode[4], contrast_per_mode[5], contrast_per_mode[6], c0]
-    df[''] = None
-    df['Telescope'] = ['total segs', 'diam', 'seg diam', 'contrast_floor', 'iwa', 'owa']
-    df['Values'] = [tel.nseg, tel.diam, tel.diam / (2 * NUM_RINGS + 1), contrast_floor, tel.iwa, tel.owa]
-    df['opt_wv'] = [opt_wavescale, '', '', '', '', '']
-    df['opt_t'] = [opt_tscale, '', '', '', '', '']
-    print(df)
-    df.to_csv(os.path.join(data_dir, 'tolerance_table.csv'))
+    generate_tolerance_table(tel, NUM_MODES, Q_individuals, contrast_per_mode, Q_total, contrast_floor,
+                             c0, opt_wavescale, opt_tscale, data_dir)
     print(f'All analysis is saved to {data_dir}.')

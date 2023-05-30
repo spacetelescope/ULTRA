@@ -1,4 +1,6 @@
 import numpy as np
+import os
+import pandas as pd
 
 
 def matrix_subsample(matrix, n, m):
@@ -110,3 +112,22 @@ def calc_mean_tolerance_per_mode(opt_wavescale, mus, nmodes, nsegs, tscale):
     per_mode_temporal_tolerances = np.array(per_mode_dynamic_tolerances)
     return total_dynamic_tolerances, np.sqrt(np.mean(per_mode_temporal_tolerances)) * 1e3 * tscale
 
+
+def generate_tolerance_table(tel, num_modes, Q_individuals, contrast_per_mode, Q_total, contrast_floor,
+                             c0, opt_wavescale, opt_tscale, data_dir):
+
+    mode_number = np.arange(0, num_modes, 1)
+
+    data = np.array([mode_number, Q_individuals, contrast_per_mode]).T
+    df1 = pd.DataFrame(data)
+    df1.columns = ["Mode Number", "Tolerance (in pm)", "Contrast"]
+    df1.loc[len(df1.index)] = ['Total', Q_total, c0]
+
+    df2 = pd.DataFrame()
+    df2[''] = None
+    df2['Telescope'] = ['total segs', 'diam', 'seg diam', 'contrast_floor', 'iwa', 'owa']
+    df2['Values'] = [tel.nseg, format(tel.diam, ".2f"), format(tel.segment_circumscribed_diameter, ".2f"), contrast_floor, tel.iwa, tel.owa]
+    df2['opt_wv'] = [opt_wavescale, '', '', '', '', '']
+    df2['opt_t'] = [opt_tscale, '', '', '', '', '']
+
+    pd.concat([df1, df2], axis=1).to_csv(os.path.join(data_dir, 'tolerance_table.csv'))

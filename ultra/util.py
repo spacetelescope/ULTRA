@@ -113,15 +113,45 @@ def calc_mean_tolerance_per_mode(opt_wavescale, mus, nmodes, nsegs, tscale):
     return total_dynamic_tolerances, np.sqrt(np.mean(per_mode_temporal_tolerances)) * 1e3 * tscale
 
 
-def generate_tolerance_table(tel, num_modes, Q_individuals, contrast_per_mode, Q_total, contrast_floor,
-                             c0, opt_wavescale, opt_tscale, data_dir):
+def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, contrast_floor,
+                             opt_wavescale, opt_tscale, data_dir):
+    """
+    Creates a tolerance table which includes individual RMS weights across all segments per modal basis (can be
+    segment-level Zernike, or Harris modes), contrast allocation for each mode, total contrast due to all modes, and
+    telescope properties.
 
-    mode_number = np.arange(0, num_modes, 1)
+    Parameters
+    ----------
+    tel : class instance of the telescope simulator
+        The simulator for which the tolerance analysis is computed.
+    nmodes : int
+        Total number of local modes used to poke a segment (in case of a mid-order tolerance analysis)
+        or total number of global Zernike modes (for high-order tolerance analysis).
+    Q_per_mode : 1d numpy array
+        RMS tolerance allocation across all segments for only one mode
+    Q_total : float
+        Total RMS tolerance allocation all segments for all nmodes.
+    c_per_mode : float
+        Average contrast in DH when only one modal tolerance surface map is applied on the tel primary mirror.
+    c_total : float
+        Average contrast in DH when all tolerance surface maps are applied on the tel primary mirror.
+    contrast_floor : float
+        Average minimum static contrast in DH, in presence of no external wavefront aberration.
+    opt_wavescale : float
+        The extra delta_wf scale multiplied to Q_total in the batch / recursive estimation algorithm.
+    opt_tscale : float
+        Optimal exposure of the WFS found from the batch or recursive estimation algorithm to achieve the
+        target DH contrast.
+    data_dir : str
+        path to save the tables.
+    """
 
-    data = np.array([mode_number, Q_individuals, contrast_per_mode]).T
+    mode = np.arange(0, len(Q_per_mode), 1)
+
+    data = np.array([mode, Q_per_mode, c_per_mode]).T
     df1 = pd.DataFrame(data)
     df1.columns = ["Mode Number", "Tolerance (in pm)", "Contrast"]
-    df1.loc[len(df1.index)] = ['Total', Q_total, c0]
+    df1.loc[len(df1.index)] = ['Total', Q_total, c_total]
 
     df2 = pd.DataFrame()
     df2[''] = None

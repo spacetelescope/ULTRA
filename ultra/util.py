@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import pandas as pd
+from astropy.table import QTable
 
 
 def matrix_subsample(matrix, n, m):
@@ -147,11 +148,12 @@ def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, cont
     """
 
     mode = np.arange(0, len(Q_per_mode), 1)
-
     data = np.array([mode, Q_per_mode, c_per_mode]).T
     df1 = pd.DataFrame(data)
     df1.columns = ["Mode Number", "Tolerance (in pm)", "Contrast"]
-    df1.loc[len(df1.index)] = ['Total', Q_total, c_total]
+    df1.loc[len(df1.index)] = ['RMS Total', Q_total, c_total]
+
+    table1 = QTable.from_pandas(df1)
 
     df2 = pd.DataFrame()
     df2[''] = None
@@ -160,4 +162,9 @@ def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, cont
     df2['opt_wv'] = [opt_wavescale, '', '', '', '', '']
     df2['opt_t'] = [opt_tscale, '', '', '', '', '']
 
+    table2 = QTable.from_pandas(df2)
+
     pd.concat([df1, df2], axis=1).to_csv(os.path.join(data_dir, 'tolerance_table.csv'))
+    table1.write(os.path.join(data_dir, 'tolerance_table.txt'), format='latex')
+
+    return table1, table2

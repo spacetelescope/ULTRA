@@ -149,7 +149,7 @@ def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, cont
     Returns
     -------
     tables : tuple of length 2
-        Astropy table
+        Astropy table containing modal tolerances and their associated contrasts.
 
     """
 

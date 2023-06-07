@@ -145,6 +145,12 @@ def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, cont
         target DH contrast.
     data_dir : str
         path to save the tables.
+
+    Returns
+    -------
+    tables : tuple of length 2
+        Astropy table
+
     """
 
     mode = np.arange(0, len(Q_per_mode), 1)
@@ -157,14 +163,14 @@ def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, cont
 
     df2 = pd.DataFrame()
     df2[''] = None
-    df2['Telescope'] = ['total segs', 'diam', 'seg diam', 'contrast_floor', 'iwa', 'owa']
-    df2['Values'] = [tel.nseg, format(tel.diam, ".2f"), format(tel.segment_circumscribed_diameter, ".2f"), contrast_floor, tel.iwa, tel.owa]
-    df2['opt_wv'] = [opt_wavescale, '', '', '', '', '']
-    df2['opt_t'] = [opt_tscale, '', '', '', '', '']
+    df2['Telescope'] = ['total segs', 'diam', 'seg diam', 'contrast_floor', 'iwa', 'owa', 'opt_wavescale', 'opt_tscale']
+    df2['Values'] = [tel.nseg, format(tel.diam, ".2f"), format(tel.segment_circumscribed_diameter, ".2f"),
+                     format(contrast_floor, ".2f"), tel.iwa, tel.owa, opt_wavescale, opt_tscale]
 
     table2 = QTable.from_pandas(df2)
 
     pd.concat([df1, df2], axis=1).to_csv(os.path.join(data_dir, 'tolerance_table.csv'))
-    table1.write(os.path.join(data_dir, 'tolerance_table.txt'), format='latex')
+    table1.write(os.path.join(data_dir, 'tolerance_table1.txt'), format='latex', overwrite=True)
+    table2.write(os.path.join(data_dir, 'tolerance_table2.txt'), format='latex', overwrite=True)
 
     return table1, table2

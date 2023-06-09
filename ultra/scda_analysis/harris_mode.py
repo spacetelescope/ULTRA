@@ -187,8 +187,8 @@ if __name__ == '__main__':
 
     contrast_per_mode = np.array(c_per_modes)
 
-    tables = generate_tolerance_table(tel, Q_individuals, Q_total, contrast_per_mode, c0, contrast_floor,
-                             opt_wavescale, opt_tscale, data_dir)
+    tables = generate_tolerance_table(tel, Q_individuals, Q_total,
+                                      contrast_per_mode, c0, contrast_floor, opt_wavescale, opt_tscale, data_dir)
 
     print(tables[0], '\n', tables[1])
 

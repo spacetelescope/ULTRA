@@ -1,4 +1,7 @@
 import numpy as np
+import os
+import pandas as pd
+from astropy.table import QTable
 
 
 def matrix_subsample(matrix, n, m):
@@ -110,3 +113,64 @@ def calc_mean_tolerance_per_mode(opt_wavescale, mus, nmodes, nsegs, tscale):
     per_mode_temporal_tolerances = np.array(per_mode_dynamic_tolerances)
     return total_dynamic_tolerances, np.sqrt(np.mean(per_mode_temporal_tolerances)) * 1e3 * tscale
 
+
+def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, contrast_floor,
+                             opt_wavescale, opt_tscale, data_dir):
+    """
+    Creates a tolerance table which includes individual RMS weights across all segments per modal basis (can be
+    segment-level Zernike, or Harris modes), contrast allocation for each mode, total contrast due to all modes, and
+    telescope properties.
+
+    Parameters
+    ----------
+    tel : class instance of the telescope simulator
+        The simulator for which the tolerance analysis is computed.
+    nmodes : int
+        Total number of local modes used to poke a segment (in case of a mid-order tolerance analysis)
+        or total number of global Zernike modes (for high-order tolerance analysis).
+    Q_per_mode : 1d numpy array
+        RMS tolerance allocation across all segments for only one mode
+    Q_total : float
+        Total RMS tolerance allocation all segments for all nmodes.
+    c_per_mode : float
+        Average contrast in DH when only one modal tolerance surface map is applied on the tel primary mirror.
+    c_total : float
+        Average contrast in DH when all tolerance surface maps are applied on the tel primary mirror.
+    contrast_floor : float
+        Average minimum static contrast in DH, in presence of no external wavefront aberration.
+    opt_wavescale : float
+        The extra delta_wf scale multiplied to Q_total in the batch / recursive estimation algorithm.
+    opt_tscale : float
+        Optimal exposure of the WFS found from the batch or recursive estimation algorithm to achieve the
+        target DH contrast.
+    data_dir : str
+        path to save the tables.
+
+    Returns
+    -------
+    tables : tuple of length 2
+        Astropy table containing modal tolerances and their associated contrasts.
+
+    """
+
+    mode = np.arange(0, len(Q_per_mode), 1)
+    data = np.array([mode, Q_per_mode, c_per_mode]).T
+    df1 = pd.DataFrame(data)
+    df1.columns = ["Mode Number", "Tolerance (in pm)", "Contrast"]
+    df1.loc[len(df1.index)] = ['RMS Total', Q_total, c_total]
+
+    table1 = QTable.from_pandas(df1)
+
+    df2 = pd.DataFrame()
+    df2[''] = None
+    df2['Telescope'] = ['total segs', 'diam', 'seg diam', 'contrast_floor', 'iwa', 'owa', 'opt_wavescale', 'opt_tscale']
+    df2['Values'] = [tel.nseg, format(tel.diam, ".2f"), format(tel.segment_circumscribed_diameter, ".2f"),
+                     format(contrast_floor, ".2e"), tel.iwa, tel.owa, opt_wavescale, opt_tscale]
+
+    table2 = QTable.from_pandas(df2)
+
+    pd.concat([df1, df2], axis=1).to_csv(os.path.join(data_dir, 'tolerance_table.csv'))
+    table1.write(os.path.join(data_dir, 'tolerance_table1.txt'), format='latex', overwrite=True)
+    table2.write(os.path.join(data_dir, 'tolerance_table2.txt'), format='latex', overwrite=True)
+
+    return table1, table2

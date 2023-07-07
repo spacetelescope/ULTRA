@@ -24,7 +24,7 @@ if __name__ == '__main__':
     WHICH_DM = 'seg_mirror'
 
     # Define target contrast
-    C_TARGET = 1e-11
+    C_TARGET = CONFIG_ULTRA.getfloat('target', 'Vmag')
 
     # Parameters for Temporal Ananlysis
     sptype = CONFIG_ULTRA.get('target', 'sptype')

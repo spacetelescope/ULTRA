@@ -94,7 +94,7 @@ if __name__ == '__main__':
     npup = int(np.sqrt(tel.pupil_grid.x.shape[0]))
     star_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=Vmag,
                                                           minlam=minlam.value, maxlam=maxlam.value)
-    Nph = star_flux.value * 15 ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
+    Nph = star_flux.value * tel.diam ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
     flux = Nph
 
     Qharris = np.diag(np.asarray(mus ** 2))

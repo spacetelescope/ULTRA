@@ -1,4 +1,6 @@
 import pandas as pd
+from matplotlib.colors import TwoSlopeNorm
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import griddata
 import hcipy
@@ -116,9 +118,6 @@ if __name__ == '__main__':
     # Define the type of WFE.
     WHICH_DM = 'harris_seg_mirror'
 
-    # Define target contrast
-    C_TARGET = 1e-10
-
     if WHICH_DM == 'harris_seg_mirror':
         fpath = CONFIG_PASTIS.get('LUVOIR', 'harris_data_path')  # path to Harris spreadsheet
         pad_orientations = np.pi / 2 * np.ones(CONFIG_PASTIS.getint('LUVOIR', 'nb_subapertures'))
@@ -130,3 +129,57 @@ if __name__ == '__main__':
     tel = HexRingAPLC(optics_dir, NUM_RINGS, sampling)
 
     harris_maps = create_segmented_harris_mirror(tel, fpath, pad_orientations, thermal=True, mechanical=True, other=True)
+
+    size = int(np.sqrt(len(harris_maps[0])))
+
+    # Square region of interest
+    l1 = int(250)
+    l2 = int(750)
+
+    plt.figure(figsize=(14, 8))
+    plt.subplot2grid(shape=(2, 6), loc=(0, 0), colspan=2)
+    plt.title("Segment Level 1mK Faceplates Silvered", fontsize=10)
+    plot_norm1 = TwoSlopeNorm(vcenter=0, vmin=-10, vmax=10)
+    plt.imshow(np.reshape(harris_maps[0], (size, size))[l1:l2, l1:l2], cmap='RdBu', norm=plot_norm1)
+    plt.tick_params(top=False, bottom=False, left=False, right=False, labelleft=False, labelbottom=False)
+    cbar = plt.colorbar()
+    cbar.ax.tick_params(labelsize=10)
+    cbar.set_label("pm", fontsize=10)
+
+    plt.subplot2grid((2, 6), (0, 2), colspan=2)
+    plt.title("Segment Level 1mK bulk", fontsize=10)
+    plot_norm2 = TwoSlopeNorm(vcenter=0, vmin=-3, vmax=1)
+    plt.imshow(np.reshape(harris_maps[1], (size, size))[l1:l2, l1:l2], cmap='RdBu', norm=plot_norm2)
+    plt.tick_params(top=False, bottom=False, left=False, right=False, labelleft=False, labelbottom=False)
+    cbar = plt.colorbar()
+    cbar.ax.tick_params(labelsize=12)
+    cbar.set_label("pm", fontsize=10)
+
+    plt.subplot2grid((2, 6), (0, 4), colspan=2)
+    plt.title("Segment Level 1mK gradient radial", fontsize=10)
+    plot_norm3 = TwoSlopeNorm(vcenter=0, vmin=-1.5, vmax=1.5)
+    plt.imshow(np.reshape(harris_maps[2], (size, size))[l1:l2, l1:l2], cmap='RdBu', norm=plot_norm3)
+    plt.tick_params(top=False, bottom=False, left=False, right=False, labelleft=False, labelbottom=False)
+    cbar = plt.colorbar()
+    cbar.ax.tick_params(labelsize=10)
+    cbar.set_label("pm", fontsize=10)
+
+    plt.subplot2grid((2, 6), (1, 1), colspan=2)
+    plt.title("Segment Level 1mK gradient X lateral", fontsize=10)
+    plot_norm4 = TwoSlopeNorm(vcenter=0, vmin=-2.5, vmax=2.5)
+    plt.imshow(np.reshape(harris_maps[3], (size, size))[l1:l2, l1:l2], cmap='RdBu', norm=plot_norm4)
+    plt.tick_params(top=False, bottom=False, left=False, right=False, labelleft=False, labelbottom=False)
+    cbar = plt.colorbar()
+    cbar.ax.tick_params(labelsize=10)
+    cbar.set_label("pm", fontsize=10)
+
+    plt.subplot2grid((2, 6), (1, 3), colspan=2)
+    plt.title("Segment Level 1mK gradient Z axial", fontsize=10)
+    plot_norm5 = TwoSlopeNorm(vcenter=0, vmin=-3, vmax=3)
+    plt.imshow(np.reshape(harris_maps[4], (size, size))[l1:l2, l1:l2], cmap='RdBu', norm=plot_norm5)
+    plt.tick_params(top=False, bottom=False, left=False, right=False, labelleft=False, labelbottom=False)
+    cbar = plt.colorbar()
+    cbar.ax.tick_params(labelsize=10)
+    cbar.set_label("pm", fontsize=10)
+
+    plt.tight_layout()

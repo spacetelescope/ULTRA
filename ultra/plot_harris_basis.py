@@ -132,11 +132,11 @@ if __name__ == '__main__':
 
     size = int(np.sqrt(len(harris_maps[0])))
 
-    # Square region of interest
-    l1 = int(250)
+    # Square region of interest, dependent on the size of segment.
+    l1 = int(250)  # optimized value for 1 ring only.
     l2 = int(750)
 
-    plt.figure(figsize=(14, 8))
+    plt.figure(figsize=(14, 9))
     plt.subplot2grid(shape=(2, 6), loc=(0, 0), colspan=2)
     plt.title("Segment Level 1mK Faceplates Silvered", fontsize=10)
     plot_norm1 = TwoSlopeNorm(vcenter=0, vmin=-10, vmax=10)
@@ -152,7 +152,8 @@ if __name__ == '__main__':
     plt.imshow(np.reshape(harris_maps[1], (size, size))[l1:l2, l1:l2], cmap='RdBu', norm=plot_norm2)
     plt.tick_params(top=False, bottom=False, left=False, right=False, labelleft=False, labelbottom=False)
     cbar = plt.colorbar()
-    cbar.ax.tick_params(labelsize=12)
+    cbar.set_ticks(ticks=[-3, -2, -1, 0, 0.3, 0.6, 0.8, 1])
+    cbar.ax.tick_params(labelsize=10)
     cbar.set_label("pm", fontsize=10)
 
     plt.subplot2grid((2, 6), (0, 4), colspan=2)

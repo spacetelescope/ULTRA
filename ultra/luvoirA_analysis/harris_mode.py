@@ -23,7 +23,7 @@ if __name__ == '__main__':
     APLC_DESIGN = 'small'
 
     # Define target contrast
-    C_TARGET = CONFIG_ULTRA.getfloat('target', 'Vmag')
+    C_TARGET = CONFIG_ULTRA.getfloat('target', 'contrast')
 
     # Parameters for Temporal Ananlysis
     sptype = CONFIG_ULTRA.get('target', 'sptype')

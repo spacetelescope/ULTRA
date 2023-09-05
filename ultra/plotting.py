@@ -101,10 +101,10 @@ def plot_iter_mv(contrasts, mv_min, mv_max, mv_step,
     contrasts = np.asarray(contrasts)
     plt.figure(figsize=(15, 10))
 
-    for pp in range(0, len(mv)):
+    for pp in range(0, len(mv_list)):
         font = {'family': 'serif', 'color': 'black', 'weight': 'normal', 'size': 20}
-        plt.title('Target contrast = %s, Vmag= %s' % (C_TARGET, Vmag), fontdict=font)
-        plt.plot(texp, contrasts[pp * Ntimes:(pp + 1) * Ntimes] - contrast_floor, label=r'$\m_{v}= % .2f$' % (mv_list[pp]))
+        plt.title('Target contrast = %s' % (C_TARGET, Vmag), fontdict=font)
+        plt.plot(texp, contrasts[pp * Ntimes:(pp + 1) * Ntimes] - contrast_floor, label=r'$ m_{v}= %d $' % (mv_list[pp]))
         plt.xlabel("$t_{WFS}$ in secs", fontsize=20)
         plt.ylabel(r"$ \Delta $ contrast", fontsize=20)
         plt.yscale('log')

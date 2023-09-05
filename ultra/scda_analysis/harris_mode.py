@@ -13,7 +13,7 @@ from pastis.util import dh_mean
 from ultra.config import CONFIG_ULTRA
 from ultra.util import calculate_sensitivity_matrices, generate_tolerance_table
 from ultra.close_loop_analysis import req_closedloop_calc_batch
-from ultra.plotting import plot_iter_wf
+from ultra.plotting import plot_iter_wf, plot_iter_mv
 
 if __name__ == '__main__':
 
@@ -101,9 +101,9 @@ if __name__ == '__main__':
     norm = np.max(ref)
 
     # Calculate contrast vs wavefront sensing time for different values of Q.
-    wavescale_min = 100    # TODO: plot works only for 7 wavescale values, chose the stepsize accordingly.
+    wavescale_min = 100
     wavescale_max = 240
-    wavescale_step = 20
+    wavescale_step = 10
     result_wf_test = []
     for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         print('recurssive close loop batch estimation and wavescale %f' % wavescale)
@@ -126,7 +126,11 @@ if __name__ == '__main__':
                  TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir)
 
     # Calculate contrast vs wavefront sensing time for different values of stellar magnitude.
-    for mv in range(1, 10, 2):
+    contrasts_mv = []
+    mv_min = 1
+    mv_max = 10
+    mv_step = 2
+    for mv in range(mv_min, mv_max, mv_step):
         stellar_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=mv, minlam=minlam.value, maxlam=maxlam.value)
         entrace_flux = stellar_flux.value * tel.diam ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
         for tscale in np.logspace(TimeMinus, TimePlus, Ntimes):
@@ -138,7 +142,10 @@ if __name__ == '__main__':
                                              niter, tel.dh_mask, norm)
             tmp1 = tmp0['averaged_hist']
             n_tmp1 = len(tmp1)
-            result_wf_test.append(tmp1[n_tmp1 - 1])
+            contrasts_mv.append(tmp1[n_tmp1 - 1])
+
+    plot_iter_mv(contrasts_mv, mv_min, mv_max, mv_step,
+                 TimeMinus, TimePlus, Ntimes, contrast_floor, C_TARGET, Vmag, data_dir)
 
     # Final Individual Tolerance allocation across 5 modes in units of pm.
     coeffs_table = np.zeros([NUM_MODES, tel.nseg])  # TODO : coeffs_table = sort_1d_mus_per_seg(mus, NUM_MODES, tel.nseg)

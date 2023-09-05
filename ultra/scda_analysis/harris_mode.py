@@ -43,6 +43,14 @@ if __name__ == '__main__':
     TimePlus = CONFIG_ULTRA.getfloat('close_loop', 'TimePlus')
     Ntimes = CONFIG_ULTRA.getint('close_loop', 'Ntimes')
 
+    wavescale_min = CONFIG_ULTRA.getint('close_loop', 'wavescale_min')
+    wavescale_max = CONFIG_ULTRA.getint('close_loop', 'wavescale_max')
+    wavescale_step = CONFIG_ULTRA.getint('close_loop', 'wavescale_step')
+
+    mv_min = CONFIG_ULTRA.getint('close_loop', 'mv_min')
+    mv_max = CONFIG_ULTRA.getint('close_loop', 'mv_max')
+    mv_step = CONFIG_ULTRA.getint('close_loop', 'mv_step')
+
     if WHICH_DM == 'harris_seg_mirror':
         fpath = CONFIG_PASTIS.get('LUVOIR', 'harris_data_path')  # path to Harris spreadsheet
         pad_orientations = np.pi / 2 * np.ones(CONFIG_PASTIS.getint('LUVOIR', 'nb_subapertures'))
@@ -101,10 +109,7 @@ if __name__ == '__main__':
     norm = np.max(ref)
 
     # Calculate contrast vs wavefront sensing time for different values of Q.
-    wavescale_min = 100
-    wavescale_max = 240
-    wavescale_step = 10
-    result_wf_test = []
+    contrasts_delta_wf = []
     for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         print('recurssive close loop batch estimation and wavescale %f' % wavescale)
         timer1 = time.time()
@@ -118,18 +123,15 @@ if __name__ == '__main__':
                                              niter, tel.dh_mask, norm)
             tmp1 = tmp0['averaged_hist']
             n_tmp1 = len(tmp1)
-            result_wf_test.append(tmp1[n_tmp1 - 1])
+            contrasts_delta_wf.append(tmp1[n_tmp1 - 1])
 
     np.savetxt(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.csv' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)),
-               result_wf_test, delimiter=',')
+               contrasts_delta_wf, delimiter=',')
     plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
-                 TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir)
+                 TimeMinus, TimePlus, Ntimes, contrasts_delta_wf, contrast_floor, C_TARGET, Vmag, data_dir)
 
     # Calculate contrast vs wavefront sensing time for different values of stellar magnitude.
     contrasts_mv = []
-    mv_min = 1
-    mv_max = 10
-    mv_step = 2
     for mv in range(mv_min, mv_max, mv_step):
         stellar_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=mv, minlam=minlam.value, maxlam=maxlam.value)
         entrace_flux = stellar_flux.value * tel.diam ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
@@ -145,7 +147,7 @@ if __name__ == '__main__':
             contrasts_mv.append(tmp1[n_tmp1 - 1])
 
     plot_iter_mv(contrasts_mv, mv_min, mv_max, mv_step,
-                 TimeMinus, TimePlus, Ntimes, contrast_floor, C_TARGET, Vmag, data_dir)
+                 TimeMinus, TimePlus, Ntimes, contrast_floor, C_TARGET, data_dir)
 
     # Final Individual Tolerance allocation across 5 modes in units of pm.
     coeffs_table = np.zeros([NUM_MODES, tel.nseg])  # TODO : coeffs_table = sort_1d_mus_per_seg(mus, NUM_MODES, tel.nseg)

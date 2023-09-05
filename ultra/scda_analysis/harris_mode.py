@@ -128,7 +128,8 @@ if __name__ == '__main__':
     np.savetxt(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.csv' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)),
                contrasts_delta_wf, delimiter=',')
     opt_delta_contrast, opt_tscale, opt_wavescale = plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
-                 TimeMinus, TimePlus, Ntimes, contrasts_delta_wf, contrast_floor, C_TARGET, Vmag, data_dir)
+                                                                 TimeMinus, TimePlus, Ntimes, contrasts_delta_wf,
+                                                                 contrast_floor, C_TARGET, Vmag, data_dir)
 
     print('Optimal Wavescale found:', opt_wavescale, 'Optimal wfs time scale:', opt_tscale)
 

@@ -127,8 +127,10 @@ if __name__ == '__main__':
 
     np.savetxt(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.csv' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)),
                contrasts_delta_wf, delimiter=',')
-    plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
+    opt_delta_contrast, opt_tscale, opt_wavescale = plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
                  TimeMinus, TimePlus, Ntimes, contrasts_delta_wf, contrast_floor, C_TARGET, Vmag, data_dir)
+
+    print('Optimal Wavescale found:', opt_wavescale, 'Optimal wfs time scale:', opt_tscale)
 
     # Calculate contrast vs wavefront sensing time for different values of stellar magnitude.
     contrasts_mv = []
@@ -140,7 +142,7 @@ if __name__ == '__main__':
             print(tscale)
             tmp0 = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise,
                                              detector_noise, tscale, entrace_flux * Starfactor,
-                                             0.0001 * wavescale ** 2 * Qharris,
+                                             0.0001 * opt_wavescale ** 2 * Qharris,
                                              niter, tel.dh_mask, norm)
             tmp1 = tmp0['averaged_hist']
             n_tmp1 = len(tmp1)
@@ -157,9 +159,6 @@ if __name__ == '__main__':
 
     print('Computing tolerance table...')
     # check temporal maps for individual modes
-    opt_wavescale = 200  # This is wavescale value corresponding to local minima contrast from the graph saved above.
-    opt_tscale = 0.1
-
     Q_total = 1e3 * np.sqrt(np.mean(np.diag(0.0001 * opt_wavescale ** 2 * Qharris)))  # in pm
     Q_individual = []
     for mode in range(NUM_MODES):

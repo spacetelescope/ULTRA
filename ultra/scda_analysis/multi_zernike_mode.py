@@ -157,9 +157,6 @@ if __name__ == '__main__':
 
     print('Computing tolerance table...')
     # check temporal maps for individual modes
-    opt_wavescale = 200  # This is wavescale value corresponding to local minima contrast from the graph saved above.
-    opt_tscale = 0.1
-
     Q_total = 1e3 * np.sqrt(np.mean(np.diag(0.0001 * opt_wavescale ** 2 * Q_mid_zernikes)))  # in pm
     Q_individual = []
     for mode in range(NUM_MODES):

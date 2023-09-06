@@ -61,7 +61,7 @@ def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_di
 
 
 def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
-                 TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir):
+                 TimeMinus, TimePlus, Ntimes, contrasts, contrast_floor, C_TARGET, Vmag, data_dir):
     delta_wf = []
     for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         wf = np.sqrt(np.mean(np.diag(0.0001 * wavescale ** 2 * Qharris))) * 1e3
@@ -72,12 +72,25 @@ def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
     texp = np.logspace(TimeMinus, TimePlus, Ntimes)
     font = {'family': 'serif', 'color': 'black', 'weight': 'normal', 'size': 20}
 
-    result_wf_test = np.asarray(result_wf_test)
+    contrasts = np.asarray(contrasts)
     plt.figure(figsize=(15, 10))
 
+    index_minima = []
+    contrasts_minima = []
+    t_minima = []
     for pp in range(0, len(wavescale_vec)):
+
+        contrasts_subarray = contrasts[pp * Ntimes:(pp + 1) * Ntimes] - contrast_floor
+        index_min = np.unravel_index(contrasts_subarray.argmin(), contrasts_subarray.shape)
+        contrast_min = contrasts_subarray[index_min]
+        t_min = texp[index_min]
+
+        contrasts_minima.append(contrast_min)
+        index_minima.append(index_min)
+        t_minima.append(t_min)
+
         plt.title('Target contrast = %s, Vmag= %s' % (C_TARGET, Vmag), fontdict=font)
-        plt.plot(texp, result_wf_test[pp * Ntimes:(pp + 1) * Ntimes] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[pp]))
+        plt.plot(texp, contrasts_subarray, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[pp]))
         plt.xlabel("$t_{WFS}$ in secs", fontsize=20)
         plt.ylabel(r"$ \Delta $ contrast", fontsize=20)
         plt.yscale('log')
@@ -88,7 +101,41 @@ def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
         plt.tick_params(axis='both', which='minor', length=6, width=2)
         plt.grid()
 
+    delta_contrast_minima = abs((np.array(contrasts_minima) - C_TARGET))
+    index_minimum = (np.unravel_index(delta_contrast_minima.argmin(), delta_contrast_minima.shape))[0]
+    contrast_minimum = contrasts_minima[index_minimum]
+    t_wfs_optimal = t_minima[index_minimum]
+    wavescale_optimal = wavescale_vec[index_minimum]
+
     plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.png' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)))
+
+    return contrast_minimum, t_wfs_optimal, wavescale_optimal
+
+
+def plot_iter_mv(contrasts, mv_min, mv_max, mv_step, TimeMinus, TimePlus, Ntimes, contrast_floor, C_TARGET, data_dir):
+    mv_list = []
+    for mv in range(mv_min, mv_max, mv_step):
+        mv_list.append(mv)
+
+    texp = np.logspace(TimeMinus, TimePlus, Ntimes)
+    contrasts = np.asarray(contrasts)
+    plt.figure(figsize=(15, 10))
+
+    for pp in range(0, len(mv_list)):
+        font = {'family': 'serif', 'color': 'black', 'weight': 'normal', 'size': 20}
+        plt.title('Target contrast = %s' % (C_TARGET), fontdict=font)
+        plt.plot(texp, contrasts[pp * Ntimes:(pp + 1) * Ntimes] - contrast_floor, label=r'$ m_{v}= %d $' % (mv_list[pp]))
+        plt.xlabel("$t_{WFS}$ in secs", fontsize=20)
+        plt.ylabel(r"$ \Delta $ contrast", fontsize=20)
+        plt.yscale('log')
+        plt.xscale('log')
+        plt.legend(loc='upper center', fontsize=20)
+        plt.tick_params(top=True, bottom=True, left=True, right=True, labelleft=True, labelbottom=True, labelsize=20)
+        plt.tick_params(axis='both', which='major', length=10, width=2)
+        plt.tick_params(axis='both', which='minor', length=6, width=2)
+        plt.grid()
+
+    plt.savefig(os.path.join(data_dir, 'contrast_iter_mv.png'))
 
 
 def plot_pastis_matrix(pastis_matrix, data_dir, vcenter, vmin, vmax):

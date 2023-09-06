@@ -13,7 +13,7 @@ from pastis.util import dh_mean
 from ultra.config import CONFIG_ULTRA
 from ultra.util import calculate_sensitivity_matrices, generate_tolerance_table
 from ultra.close_loop_analysis import req_closedloop_calc_batch
-from ultra.plotting import plot_iter_wf
+from ultra.plotting import plot_iter_wf, plot_iter_mv
 
 if __name__ == '__main__':
 
@@ -42,7 +42,14 @@ if __name__ == '__main__':
     TimeMinus = CONFIG_ULTRA.getfloat('close_loop', 'TimeMinus')
     TimePlus = CONFIG_ULTRA.getfloat('close_loop', 'TimePlus')
     Ntimes = CONFIG_ULTRA.getint('close_loop', 'Ntimes')
-    Nwavescale = CONFIG_ULTRA.getfloat('close_loop', 'Nwavescale')
+
+    wavescale_min = CONFIG_ULTRA.getint('close_loop', 'wavescale_min')
+    wavescale_max = CONFIG_ULTRA.getint('close_loop', 'wavescale_max')
+    wavescale_step = CONFIG_ULTRA.getint('close_loop', 'wavescale_step')
+
+    mv_min = CONFIG_ULTRA.getint('close_loop', 'mv_min')
+    mv_max = CONFIG_ULTRA.getint('close_loop', 'mv_max')
+    mv_step = CONFIG_ULTRA.getint('close_loop', 'mv_step')
 
     if WHICH_DM == 'harris_seg_mirror':
         fpath = CONFIG_PASTIS.get('LUVOIR', 'harris_data_path')  # path to Harris spreadsheet
@@ -94,21 +101,17 @@ if __name__ == '__main__':
     npup = int(np.sqrt(tel.pupil_grid.x.shape[0]))
     star_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=Vmag,
                                                           minlam=minlam.value, maxlam=maxlam.value)
-    Nph = star_flux.value * tel.diam ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
-    flux = Nph
+    flux = star_flux.value * tel.diam ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
 
     Qharris = np.diag(np.asarray(mus ** 2))
 
     unaberrated_coro_psf, ref = tel.calc_psf(ref=True, display_intermediate=False, norm_one_photon=True)
     norm = np.max(ref)
 
-    wavescale_min = 100    # TODO: plot works only for 7 wavescale values, chose the stepsize accordingly.
-    wavescale_max = 240
-    wavescale_step = 20
-    result_wf_test = []
+    # Calculate contrast vs wavefront sensing time for different values of Q.
+    contrasts_delta_wf = []
     for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         print('recurssive close loop batch estimation and wavescale %f' % wavescale)
-        niter = 10
         timer1 = time.time()
         StarMag = 0.0
         for tscale in np.logspace(TimeMinus, TimePlus, Ntimes):
@@ -120,12 +123,34 @@ if __name__ == '__main__':
                                              niter, tel.dh_mask, norm)
             tmp1 = tmp0['averaged_hist']
             n_tmp1 = len(tmp1)
-            result_wf_test.append(tmp1[n_tmp1 - 1])
+            contrasts_delta_wf.append(tmp1[n_tmp1 - 1])
 
     np.savetxt(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.csv' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)),
-               result_wf_test, delimiter=',')
-    plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
-                 TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir)
+               contrasts_delta_wf, delimiter=',')
+    opt_delta_contrast, opt_tscale, opt_wavescale = plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
+                                                                 TimeMinus, TimePlus, Ntimes, contrasts_delta_wf,
+                                                                 contrast_floor, C_TARGET, Vmag, data_dir)
+
+    print('Optimal Wavescale found:', opt_wavescale, 'Optimal wfs time scale:', opt_tscale)
+
+    # Calculate contrast vs wavefront sensing time for different values of stellar magnitude.
+    contrasts_mv = []
+    for mv in range(mv_min, mv_max, mv_step):
+        stellar_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=mv, minlam=minlam.value, maxlam=maxlam.value)
+        entrace_flux = stellar_flux.value * tel.diam ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
+        for tscale in np.logspace(TimeMinus, TimePlus, Ntimes):
+            Starfactor = 10 ** (-StarMag / 2.5)
+            print(tscale)
+            tmp0 = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise,
+                                             detector_noise, tscale, entrace_flux * Starfactor,
+                                             0.0001 * opt_wavescale ** 2 * Qharris,
+                                             niter, tel.dh_mask, norm)
+            tmp1 = tmp0['averaged_hist']
+            n_tmp1 = len(tmp1)
+            contrasts_mv.append(tmp1[n_tmp1 - 1])
+
+    plot_iter_mv(contrasts_mv, mv_min, mv_max, mv_step,
+                 TimeMinus, TimePlus, Ntimes, contrast_floor, C_TARGET, data_dir)
 
     # Final Individual Tolerance allocation across 5 modes in units of pm.
     coeffs_table = np.zeros([NUM_MODES, tel.nseg])  # TODO : coeffs_table = sort_1d_mus_per_seg(mus, NUM_MODES, tel.nseg)
@@ -135,9 +160,6 @@ if __name__ == '__main__':
 
     print('Computing tolerance table...')
     # check temporal maps for individual modes
-    opt_wavescale = 200  # This is wavescale value corresponding to local minima contrast from the graph saved above.
-    opt_tscale = 0.1
-
     Q_total = 1e3 * np.sqrt(np.mean(np.diag(0.0001 * opt_wavescale ** 2 * Qharris)))  # in pm
     Q_individual = []
     for mode in range(NUM_MODES):
@@ -191,5 +213,4 @@ if __name__ == '__main__':
                                       contrast_per_mode, c0, contrast_floor, opt_wavescale, opt_tscale, data_dir)
 
     print(tables[0], '\n', tables[1])
-
     print(f'All analysis is saved to {data_dir}.')

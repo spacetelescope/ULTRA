@@ -201,7 +201,7 @@ if __name__ == '__main__':
         resultant_contrast.append(c1[n_tmp1 - 1])
         c_per_modes.append(resultant_contrast[0] - contrast_floor)
 
-    c_per_mode = np.array(c_per_modes)
+    c_per_modes = np.array(c_per_modes)
 
     # Calculate total mean temporal wavefront error for individual modes.
     Q_total = 1e3 * np.sqrt(np.mean(np.diag(fractional_scale * opt_wavescale ** 2 * Qharris)))  # in pm
@@ -213,7 +213,7 @@ if __name__ == '__main__':
 
     print('Generating tolerance tables:..')
     tables = generate_tolerance_table(tel, Q_individual, Q_total,
-                                      c_per_mode, c0, contrast_floor, opt_wavescale, opt_tscale, data_dir)
+                                      c_per_modes, c0, contrast_floor, opt_wavescale, opt_tscale, data_dir)
 
     print(tables[0], '\n', tables[1])
     print(f'All analysis is saved to {data_dir}.')

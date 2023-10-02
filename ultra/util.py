@@ -176,7 +176,7 @@ def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, cont
 
     df2 = pd.DataFrame()
     df2[''] = None
-    df2['Telescope'] = ['total segs', 'diam', 'seg diam', 'contrast_floor', 'iwa', 'owa', 'opt_wavescale', 'opt_tscale']
+    df2['Telescope'] = ['total segs', 'diam', 'seg diam', 'contrast_floor', 'iwa', 'owa', 'opt_wavescale', 'opt_tscale(in s)']
     df2['Values'] = [tel.nseg, format(tel.diam, ".2f"), format(tel.segment_circumscribed_diameter, ".2f"),
                      format(contrast_floor, ".2e"), tel.iwa, tel.owa, opt_wavescale, opt_tscale]
 

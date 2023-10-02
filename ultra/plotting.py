@@ -1,9 +1,12 @@
-import hcipy
+from matplotlib.colors import TwoSlopeNorm, LinearSegmentedColormap
+import matplotlib.pyplot as plt
 import numpy as np
 import os
-import matplotlib.pyplot as plt
-from matplotlib.colors import TwoSlopeNorm, LinearSegmentedColormap
+
+import hcipy
 from pastis.util import sort_1d_mus_per_actuator
+
+from ultra.config import CONFIG_ULTRA
 
 
 def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_dir=None, fname=None):
@@ -61,11 +64,49 @@ def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_di
             plt.savefig(os.path.join(data_dir, 'mu_maps', image_name))
 
 
-def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
-                 TimeMinus, TimePlus, Ntimes, contrasts, contrast_floor, C_TARGET, Vmag, data_dir):
+def plot_iter_wf(variance_q, contrasts, contrast_floor, data_dir):
+    """Plots 'triangular' contrast curves for different wfs exposure time.
+
+    This function generates and saves contrast vs texp,
+    and calculates the optimal wfs time scale and delta wavefront error scale.
+
+    Parameters
+    ----------
+    variance_q : numpy 2d array
+        a square diagonal matrix, with static tolerances as diagonal elements.
+    contrasts : list
+        list of contrasts for different wfs exposure time.
+    contrast_floor : float
+        static coronagraphic contrast without any external aberration.
+    data_dir :  str
+        path to save the plot.
+
+    Returns
+    -------
+    contrast_minimum : float
+        minimum contrast corresponding to
+    t_wfs_optimal : float
+        optimal wavefront sensing time (in secs)
+    wavescale_optimal : int
+        optimal scaling factor to be later mulitplied to variance_q, fractional scale to give the total
+        wavefront error drift in pm/s.
+
+    """
+    wavescale_min = CONFIG_ULTRA.getint('close_loop', 'wavescale_min')
+    wavescale_max = CONFIG_ULTRA.getint('close_loop', 'wavescale_max')
+    wavescale_step = CONFIG_ULTRA.getint('close_loop', 'wavescale_step')
+    fractional_scale = CONFIG_ULTRA.getfloat('close_loop', 'fractional_scale')
+
+    TimeMinus = CONFIG_ULTRA.getfloat('close_loop', 'TimeMinus')
+    TimePlus = CONFIG_ULTRA.getfloat('close_loop', 'TimePlus')
+    Ntimes = CONFIG_ULTRA.getint('close_loop', 'Ntimes')
+
+    Vmag = CONFIG_ULTRA.getfloat('target', 'Vmag')
+    C_TARGET = CONFIG_ULTRA.getfloat('target', 'contrast')
+
     delta_wf = []
     for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
-        wf = np.sqrt(np.mean(np.diag(0.0001 * wavescale ** 2 * Qharris))) * 1e3
+        wf = np.sqrt(np.mean(np.diag(fractional_scale * wavescale ** 2 * variance_q))) * 1e3
         delta_wf.append(wf)
 
     wavescale_vec = range(wavescale_min, wavescale_max, wavescale_step)
@@ -113,7 +154,29 @@ def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
     return contrast_minimum, t_wfs_optimal, wavescale_optimal
 
 
-def plot_iter_mv(contrasts, mv_min, mv_max, mv_step, TimeMinus, TimePlus, Ntimes, contrast_floor, C_TARGET, data_dir):
+def plot_iter_mv(contrasts, contrast_floor, data_dir):
+    """Plots 'triangular' contrast curves for different wfs exposures, iterating over stellar magnitudes.
+
+    Parameters
+    ----------
+    contrasts : list
+        list of contrasts for different wfs exposure time.
+    contrast_floor : float
+        static coronagraphic contrast without any external aberration.
+    data_dir : str
+        path to save the plot.
+
+    """
+    mv_min = CONFIG_ULTRA.getint('close_loop', 'mv_min')
+    mv_max = CONFIG_ULTRA.getint('close_loop', 'mv_max')
+    mv_step = CONFIG_ULTRA.getint('close_loop', 'mv_step')
+
+    TimeMinus = CONFIG_ULTRA.getfloat('close_loop', 'TimeMinus')
+    TimePlus = CONFIG_ULTRA.getfloat('close_loop', 'TimePlus')
+    Ntimes = CONFIG_ULTRA.getint('close_loop', 'Ntimes')
+
+    C_TARGET = CONFIG_ULTRA.getfloat('target', 'contrast')
+
     mv_list = []
     for mv in range(mv_min, mv_max, mv_step):
         mv_list.append(mv)
@@ -140,6 +203,22 @@ def plot_iter_mv(contrasts, mv_min, mv_max, mv_step, TimeMinus, TimePlus, Ntimes
 
 
 def plot_pastis_matrix(pastis_matrix, data_dir, vcenter, vmin, vmax):
+    """Plots PASTIS matrix.
+
+    Parameters
+    ----------
+    pastis_matrix : numpy 2d array
+        a square PASTIS matrix.
+    data_dir : str
+        path to save the plot
+    vcenter : float
+        TwoSlopeNorm's vcenter
+    vmin : float
+        TwoSlopeNorm's vmin
+    vmax : float
+        TwoSlopeNorm's vmax
+
+    """
     clist = [(0.1, 0.6, 1.0), (0.05, 0.05, 0.05), (0.8, 0.5, 0.1)]
     blue_orange_divergent = LinearSegmentedColormap.from_list("custom_blue_orange", clist)
 

@@ -132,9 +132,7 @@ if __name__ == '__main__':
     np.savetxt(os.path.join(data_dir, 'contrast_wf.csv'), contrasts_delta_wf, delimiter=',')
 
     # Calculate for optimal contrast, wfs time and drift wavefront.
-    opt_delta_contrast, opt_tscale, opt_wavescale = plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
-                                                                 TimeMinus, TimePlus, Ntimes, contrasts_delta_wf,
-                                                                 contrast_floor, C_TARGET, Vmag, data_dir)
+    opt_delta_contrast, opt_tscale, opt_wavescale = plot_iter_wf(Qharris, contrasts_delta_wf, contrast_floor, data_dir)
 
     print('Optimal Wavescale found:', opt_wavescale, 'Optimal wfs time scale:', opt_tscale)
 
@@ -156,7 +154,7 @@ if __name__ == '__main__':
 
     np.savetxt(os.path.join(data_dir, 'contrast_mv.csv'), contrasts_mv, delimiter=',')
 
-    plot_iter_mv(contrasts_mv, mv_min, mv_max, mv_step, TimeMinus, TimePlus, Ntimes, contrast_floor, C_TARGET, data_dir)
+    plot_iter_mv(contrasts_mv, contrast_floor, data_dir)
 
     # Final Individual Tolerance allocation across 5 modes in units of pm.
     coeffs_table = np.zeros([NUM_MODES, tel.nseg])

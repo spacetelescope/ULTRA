@@ -130,8 +130,7 @@ def calc_mean_tolerance_per_mode(opt_wavescale, mus, nmodes, nsegs, tscale):
 
 def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, contrast_floor,
                              opt_wavescale, opt_tscale, data_dir):
-    """
-    Creates a tolerance table which includes individual RMS weights across all segments per modal basis (can be
+    """Creates a tolerance table which includes individual RMS weights across all segments per modal basis (can be
     segment-level Zernike, or Harris modes), contrast allocation for each mode, total contrast due to all modes, and
     telescope properties.
 
@@ -170,7 +169,7 @@ def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, cont
     mode = np.arange(0, len(Q_per_mode), 1)
     data = np.array([mode, Q_per_mode, c_per_mode]).T
     df1 = pd.DataFrame(data)
-    df1.columns = ["Mode Number", "Tolerance (in pm)", "Contrast"]
+    df1.columns = ["Mode Number", "Tolerance (in pm/s)", "Contrast"]
     df1.loc[len(df1.index)] = ['RMS Total', Q_total, c_total]
 
     table1 = QTable.from_pandas(df1)

@@ -26,7 +26,7 @@ if __name__ == '__main__':
     # Define target contrast
     C_TARGET = CONFIG_ULTRA.getfloat('target', 'contrast')
 
-    # Parameters for Temporal Ananlysis
+    # Parameters for Temporal Analysis
     sptype = CONFIG_ULTRA.get('target', 'sptype')
     Vmag = CONFIG_ULTRA.getfloat('target', 'Vmag')
 
@@ -58,6 +58,7 @@ if __name__ == '__main__':
         DM_SPEC = (fpath, pad_orientations, True, False, False)
         NUM_MODES = 5
 
+    # Run PASTIS analysis.
     run_matrix = MatrixEfieldHex(which_dm=WHICH_DM, dm_spec=DM_SPEC, num_rings=NUM_RINGS,
                                  calc_science=True, calc_wfs=True,
                                  initial_path=CONFIG_PASTIS.get('local', 'local_data_path'), norm_one_photon=True)
@@ -67,9 +68,10 @@ if __name__ == '__main__':
     copy_ultra_ini(data_dir)
     print(f'All saved to {data_dir}.')
 
+    # Call the simulator.
     tel = run_matrix.simulator
 
-    unaber_psf = fits.getdata(os.path.join(data_dir, 'unaberrated_coro_psf.fits'))  # already normalized to max of direct psf
+    unaber_psf = fits.getdata(os.path.join(data_dir, 'unaberrated_coro_psf.fits'))   # already normalized to max(direct psf)
     dh_mask_shaped = tel.dh_mask.shaped
     contrast_floor = dh_mean(unaber_psf, dh_mask_shaped)
 
@@ -127,8 +129,9 @@ if __name__ == '__main__':
             n_tmp1 = len(tmp1)
             contrasts_delta_wf.append(tmp1[n_tmp1 - 1])
 
-    np.savetxt(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.csv' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)),
-               contrasts_delta_wf, delimiter=',')
+    np.savetxt(os.path.join(data_dir, 'contrast_wf.csv'), contrasts_delta_wf, delimiter=',')
+
+    # Calculate for optimal contrast, wfs time and drift wavefront.
     opt_delta_contrast, opt_tscale, opt_wavescale = plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
                                                                  TimeMinus, TimePlus, Ntimes, contrasts_delta_wf,
                                                                  contrast_floor, C_TARGET, Vmag, data_dir)
@@ -151,24 +154,15 @@ if __name__ == '__main__':
             n_tmp1 = len(tmp1)
             contrasts_mv.append(tmp1[n_tmp1 - 1])
 
-    np.savetxt(os.path.join(data_dir, 'contrast_mv_%s_%d_%d_%d.csv' % (C_TARGET, mv_min, mv_max, mv_step)), contrasts_mv, delimiter=',')
+    np.savetxt(os.path.join(data_dir, 'contrast_mv.csv'), contrasts_mv, delimiter=',')
+
     plot_iter_mv(contrasts_mv, mv_min, mv_max, mv_step, TimeMinus, TimePlus, Ntimes, contrast_floor, C_TARGET, data_dir)
 
     # Final Individual Tolerance allocation across 5 modes in units of pm.
-    coeffs_table = np.zeros([NUM_MODES, tel.nseg])  # TODO : coeffs_table = sort_1d_mus_per_seg(mus, NUM_MODES, tel.nseg)
+    coeffs_table = np.zeros([NUM_MODES, tel.nseg])
     for qq in range(NUM_MODES):
         for kk in range(tel.nseg):
             coeffs_table[qq, kk] = mus[qq + kk * NUM_MODES]
-
-    print('Computing tolerance table...')
-    # check temporal maps for individual modes
-    Q_total = 1e3 * np.sqrt(np.mean(np.diag(fractional_scale * opt_wavescale ** 2 * Qharris)))  # in pm
-    Q_individual = []
-    for mode in range(NUM_MODES):
-        Q_modes = 1e3 * np.sqrt(np.mean(fractional_scale * opt_wavescale ** 2 * (coeffs_table[mode] ** 2)))  # in pm
-        Q_individual.append(Q_modes)
-
-    Q_individuals = np.array(Q_individual)
 
     # Sort to individual modes
     num_actuators = NUM_MODES * tel.nseg
@@ -177,31 +171,29 @@ if __name__ == '__main__':
         coeffs_tmp = np.zeros([num_actuators])
         for kk in range(tel.nseg):
             coeffs_tmp[qq + kk * NUM_MODES] = mus[qq + (kk) * NUM_MODES]  # arranged per modal basis
-        coeffs_numaps[qq] = coeffs_tmp  # arranged into 5 groups of 600 elements and in units of nm
+        coeffs_numaps[qq] = coeffs_tmp  # arranged into NUM_MODES groups of tel.nseg * NUM_MODES elements, in nm.
 
-    Qharris_individual = []
-    for mode in range(NUM_MODES):
-        Qharris_per_mode = np.diag(np.asarray(coeffs_numaps[mode] ** 2))
-        Qharris_individual.append(Qharris_per_mode)
-
-    Qmode = np.array(Qharris_individual)
-
+    # Calculate total delta-contrast at optimal wfs time, wavescale.
     c_total = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise, detector_noise,
                                         opt_tscale, flux * Starfactor, fractional_scale * opt_wavescale ** 2 * Qharris, niter,
                                         tel.dh_mask, norm)
-
     resultant_c_total = []
     c0 = c_total['averaged_hist']
     n_tmp1 = len(c0)
     resultant_c_total.append(c0[n_tmp1 - 1])
     c0 = resultant_c_total[0] - contrast_floor
 
+    Qharris_individual = []
+    for mode in range(NUM_MODES):
+        Qharris_per_mode = np.diag(np.asarray(coeffs_numaps[mode] ** 2))
+        Qharris_individual.append(Qharris_per_mode)
+    Qharris_individual = np.array(Qharris_individual)
+
     c_per_modes = []
     for mode in range(NUM_MODES):
-
         contrast = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise,
                                              detector_noise, opt_tscale, flux * Starfactor,
-                                             fractional_scale * opt_wavescale ** 2 * Qmode[mode],
+                                             fractional_scale * opt_wavescale ** 2 * Qharris_individual[mode],
                                              niter, tel.dh_mask, norm)
         resultant_contrast = []
         c1 = contrast['averaged_hist']
@@ -209,10 +201,19 @@ if __name__ == '__main__':
         resultant_contrast.append(c1[n_tmp1 - 1])
         c_per_modes.append(resultant_contrast[0] - contrast_floor)
 
-    contrast_per_mode = np.array(c_per_modes)
+    c_per_mode = np.array(c_per_modes)
 
-    tables = generate_tolerance_table(tel, Q_individuals, Q_total,
-                                      contrast_per_mode, c0, contrast_floor, opt_wavescale, opt_tscale, data_dir)
+    # Calculate total mean temporal wavefront error for individual modes.
+    Q_total = 1e3 * np.sqrt(np.mean(np.diag(fractional_scale * opt_wavescale ** 2 * Qharris)))  # in pm
+    Q_individual = []
+    for mode in range(NUM_MODES):
+        Q_modes = 1e3 * np.sqrt(np.mean(fractional_scale * opt_wavescale ** 2 * (coeffs_table[mode] ** 2)))  # in pm
+        Q_individual.append(Q_modes)
+    Q_individual = np.array(Q_individual)  # set of floats only, RMS of Q_individuals should be equal to Q_total.
+
+    print('Generating tolerance tables:..')
+    tables = generate_tolerance_table(tel, Q_individual, Q_total,
+                                      c_per_mode, c0, contrast_floor, opt_wavescale, opt_tscale, data_dir)
 
     print(tables[0], '\n', tables[1])
     print(f'All analysis is saved to {data_dir}.')

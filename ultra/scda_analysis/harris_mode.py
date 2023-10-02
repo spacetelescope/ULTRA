@@ -216,5 +216,3 @@ if __name__ == '__main__':
 
     print(tables[0], '\n', tables[1])
     print(f'All analysis is saved to {data_dir}.')
-
-    print(np.sqrt((Q_individuals[0]**2 + Q_individuals[1]**2 + Q_individuals[2]**2 + Q_individuals[3]**2 + Q_individuals[4]**2) / 5))

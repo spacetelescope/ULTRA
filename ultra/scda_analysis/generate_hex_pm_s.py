@@ -10,7 +10,7 @@ from pastis.simulators.scda_telescopes import HexRingAPLC
 from pastis.util import sort_1d_mus_per_actuator
 
 
-def plot_multimode_surface_maps2(tel, mus, mirror, data_dir=None):
+def plot_multimode_temporal_surface_maps(tel, mus, mirror, optimal_wavescale, fractional_scale, data_dir=None):
     """Creates surface deformation maps (not WFE) for only 5 kinds of localized wavefront aberrations.
     The input mode coefficients 'mus' are in units of *WFE* and need to be grouped by segment, meaning the array holds
     the mode coefficients as:
@@ -44,7 +44,7 @@ def plot_multimode_surface_maps2(tel, mus, mirror, data_dir=None):
     plt.figure(figsize=(32, 5))
     plt.subplot(1, 5, 1)
     plot_norm = TwoSlopeNorm(vcenter=0, vmin=-12, vmax=12)
-    hcipy.imshow_field((mu_maps[0]) * 1e12 * np.sqrt(0.0001 * wavescale ** 2), norm=plot_norm, cmap='RdBu')
+    hcipy.imshow_field((mu_maps[0]) * 1e12 * np.sqrt(fractional_scale * optimal_wavescale ** 2), norm=plot_norm, cmap='RdBu')
     plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True, labelsize=15)
     cbar = plt.colorbar()
     cbar.ax.tick_params(labelsize=15)
@@ -53,7 +53,7 @@ def plot_multimode_surface_maps2(tel, mus, mirror, data_dir=None):
 
     plt.subplot(1, 5, 2)
     plot_norm = TwoSlopeNorm(vcenter=0, vmin=-10, vmax=10)
-    hcipy.imshow_field((mu_maps[1]) * 1e12 * np.sqrt(0.0001 * wavescale ** 2), norm=plot_norm, cmap='RdBu')
+    hcipy.imshow_field((mu_maps[1]) * 1e12 * np.sqrt(fractional_scale * optimal_wavescale ** 2), norm=plot_norm, cmap='RdBu')
     plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True, labelsize=15)
     cbar = plt.colorbar()
     cbar.ax.tick_params(labelsize=15)
@@ -62,7 +62,7 @@ def plot_multimode_surface_maps2(tel, mus, mirror, data_dir=None):
 
     plt.subplot(1, 5, 3)
     plot_norm = TwoSlopeNorm(vcenter=0, vmin=-8, vmax=8)
-    hcipy.imshow_field((mu_maps[2]) * 1e12 * np.sqrt(0.0001 * wavescale ** 2), norm=plot_norm, cmap='RdBu')
+    hcipy.imshow_field((mu_maps[2]) * 1e12 * np.sqrt(fractional_scale * optimal_wavescale ** 2), norm=plot_norm, cmap='RdBu')
     plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True, labelsize=15)
     cbar = plt.colorbar()
     cbar.ax.tick_params(labelsize=15)
@@ -71,7 +71,7 @@ def plot_multimode_surface_maps2(tel, mus, mirror, data_dir=None):
 
     plt.subplot(1, 5, 4)
     plot_norm = TwoSlopeNorm(vcenter=0, vmin=-7, vmax=7)
-    hcipy.imshow_field((mu_maps[3]) * 1e12 * np.sqrt(0.0001 * wavescale ** 2), norm=plot_norm, cmap='RdBu')
+    hcipy.imshow_field((mu_maps[3]) * 1e12 * np.sqrt(fractional_scale * optimal_wavescale ** 2), norm=plot_norm, cmap='RdBu')
     plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True, labelsize=15)
     cbar = plt.colorbar()
     cbar.ax.tick_params(labelsize=15)
@@ -80,7 +80,7 @@ def plot_multimode_surface_maps2(tel, mus, mirror, data_dir=None):
 
     plt.subplot(1, 5, 5)
     plot_norm = TwoSlopeNorm(vcenter=0, vmin=-12, vmax=12)
-    hcipy.imshow_field((mu_maps[4]) * 1e12 * np.sqrt(0.0001 * wavescale ** 2), norm=plot_norm, cmap='RdBu')
+    hcipy.imshow_field((mu_maps[4]) * 1e12 * np.sqrt(fractional_scale * optimal_wavescale ** 2), norm=plot_norm, cmap='RdBu')
     plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True, labelsize=15)
     cbar = plt.colorbar()
     cbar.ax.tick_params(labelsize=15)
@@ -117,5 +117,6 @@ if __name__ == '__main__':
     # mus4 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_4_1e-11.csv', delimiter=',')
     # mus5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_5_1e-11.csv', delimiter=',')
 
-    wavescale = 60
-    plot_multimode_surface_maps2(tel, mus1, mirror='harris_seg_mirror', data_dir=data_dir)
+    opt_wvscale = 60
+    fract_scale = 0.0001
+    plot_multimode_temporal_surface_maps(tel, mus1, 'harris_seg_mirror', opt_wvscale, fract_scale, data_dir=data_dir)

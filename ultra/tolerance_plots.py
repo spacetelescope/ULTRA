@@ -124,7 +124,7 @@ def plot_single_thermal_mode_all_hex(mu1, mu2, mu3, mu4, mu5, c0, mode, out_dir,
     ring1_mean = 0
     for i in range(1, 7):
         ring1_mean = ring1_mean + mus1_table[num, i] * 1e3
-    print("1Hex:", "ring1:", ring1_mean/6)
+    print("1Hex:", "ring1:", ring1_mean / 6)
 
     # For 2 Hex:
     ring1_mean = 0
@@ -146,7 +146,7 @@ def plot_single_thermal_mode_all_hex(mu1, mu2, mu3, mu4, mu5, c0, mode, out_dir,
     ring3_mean = 0
     for i in range(19, 31):
         ring3_mean = ring3_mean + mus3_table[num, i] * 1e3
-    print("3Hex:", "ring1:", ring1_mean / 6, "ring2:", ring2_mean / 12, "ring3:" , ring3_mean/12)
+    print("3Hex:", "ring1:", ring1_mean / 6, "ring2:", ring2_mean / 12, "ring3:", ring3_mean / 12)
 
     # For 4 Hex:
     ring1_mean = 0
@@ -161,7 +161,7 @@ def plot_single_thermal_mode_all_hex(mu1, mu2, mu3, mu4, mu5, c0, mode, out_dir,
     ring4_mean = 0
     for i in range(37, 55):
         ring4_mean = ring4_mean + mus4_table[num, i] * 1e3
-    print("4Hex:", "ring1:", ring1_mean / 6, "ring2:", ring2_mean / 12, "ring3:", ring3_mean / 12, "ring4:", ring4_mean/18)
+    print("4Hex:", "ring1:", ring1_mean / 6, "ring2:", ring2_mean / 12, "ring3:", ring3_mean / 12, "ring4:", ring4_mean / 18)
 
     # For 5 Hex:
     ring1_mean = 0
@@ -179,7 +179,7 @@ def plot_single_thermal_mode_all_hex(mu1, mu2, mu3, mu4, mu5, c0, mode, out_dir,
     ring5_mean = 0
     for i in range(61, 85):
         ring5_mean = ring5_mean + mus5_table[num, i] * 1e3
-    print("5Hex:", "ring1:", ring1_mean / 6, "ring2:", ring2_mean / 12, "ring3:", ring3_mean / 12, "ring4:", ring4_mean /24, "ring5:", ring5_mean/24)
+    print("5Hex:", "ring1:", ring1_mean / 6, "ring2:", ring2_mean / 12, "ring3:", ring3_mean / 12, "ring4:", ring4_mean / 24, "ring5:", ring5_mean / 24)
 
     plt.figure(figsize=(10, 10))
     plt.title(str(mode) + " modal constraints to achieve a dark hole contrast of "r"$10^{%d}$" % np.log10(c0), fontsize=10)

@@ -87,13 +87,13 @@ def plot_multimode_surface_maps2(tel, mus, mirror, data_dir=None):
     cbar.set_label("Surface (pm)", fontsize=15)
     plt.tight_layout()
 
-    plt.savefig(os.path.join(data_dir, 'static_pm_harris_5hex.pdf'))
+    plt.savefig(os.path.join(data_dir, 'static_harris_pm.pdf'))
 
 
 if __name__ == '__main__':
 
     # Set number of rings
-    NUM_RINGS = 5
+    NUM_RINGS = 1
 
     # Define the type of WFE.
     WHICH_DM = 'harris_seg_mirror'
@@ -112,9 +112,9 @@ if __name__ == '__main__':
     data_dir = '/Users/asahoo/Desktop/data_repos/paper2/static_pm_harris'
 
     mus1 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_1_1e-11.csv', delimiter=',')
-    mus2 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_2_1e-11.csv', delimiter=',')
-    mus3 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_3_1e-11.csv', delimiter=',')
-    mus4 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_4_1e-11.csv', delimiter=',')
-    mus5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_5_1e-11.csv', delimiter=',')
+    # mus2 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_2_1e-11.csv', delimiter=',')
+    # mus3 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_3_1e-11.csv', delimiter=',')
+    # mus4 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_4_1e-11.csv', delimiter=',')
+    # mus5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_5_1e-11.csv', delimiter=',')
 
-    plot_multimode_surface_maps2(tel, mus5, mirror='harris_seg_mirror', data_dir=data_dir)
+    plot_multimode_surface_maps2(tel, mus1, mirror='harris_seg_mirror', data_dir=data_dir)

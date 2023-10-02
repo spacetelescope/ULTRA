@@ -122,7 +122,7 @@ if __name__ == '__main__':
         fpath = CONFIG_PASTIS.get('LUVOIR', 'harris_data_path')  # path to Harris spreadsheet
         pad_orientations = np.pi / 2 * np.ones(CONFIG_PASTIS.getint('LUVOIR', 'nb_subapertures'))
         DM_SPEC = (fpath, pad_orientations, True, False, False)
-        NUM_MODES = 5 # TODO: works only for thermal modes currently
+        NUM_MODES = 5  # TODO: works only for thermal modes currently
 
     optics_dir = os.path.join(util.find_repo_location(), 'data', 'SCDA')
     sampling = 4

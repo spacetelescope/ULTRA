@@ -4,8 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
 
-from ultra.plotting import plot_multimode_surface_maps
-
 from pastis.config import CONFIG_PASTIS
 import pastis.util as util
 from pastis.simulators.scda_telescopes import HexRingAPLC

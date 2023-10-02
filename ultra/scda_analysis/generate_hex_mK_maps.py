@@ -24,7 +24,7 @@ if __name__ == '__main__':
         fpath = CONFIG_PASTIS.get('LUVOIR', 'harris_data_path')  # path to Harris spreadsheet
         pad_orientations = np.pi / 2 * np.ones(CONFIG_PASTIS.getint('LUVOIR', 'nb_subapertures'))
         DM_SPEC = (fpath, pad_orientations, True, False, False)
-        NUM_MODES = 5 # TODO: works only for thermal modes currently
+        NUM_MODES = 5  # TODO: works only for thermal modes currently
 
     optics_dir = os.path.join(util.find_repo_location(), 'data', 'SCDA')
     sampling = 4
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     plt.subplot(1, 5, 4)
     # plt.title("Gradient X lateral", fontsize=18)
     plot_norm = TwoSlopeNorm(vcenter=1.0, vmin=0, vmax=2)
-    hcipy.imshow_field((tel5.sm.surface)* 1e3, norm=plot_norm, cmap='YlOrRd')
+    hcipy.imshow_field((tel5.sm.surface) * 1e3, norm=plot_norm, cmap='YlOrRd')
     plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True, labelsize=15)
     cbar = plt.colorbar()
     cbar.ax.tick_params(labelsize=15)
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     plt.subplot(1, 5, 5)
     # plt.title("Gradient Z axial", fontsize=18)
     plot_norm = TwoSlopeNorm(vcenter=1, vmin=0, vmax=2)
-    hcipy.imshow_field((tel6.sm.surface)*1e3, norm=plot_norm, cmap='YlOrRd')
+    hcipy.imshow_field((tel6.sm.surface) * 1e3, norm=plot_norm, cmap='YlOrRd')
     plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True, labelsize=15)
     cbar = plt.colorbar()
     cbar.ax.tick_params(labelsize=15)

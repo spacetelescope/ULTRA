@@ -151,7 +151,7 @@ if __name__ == '__main__':
             n_tmp1 = len(tmp1)
             contrasts_mv.append(tmp1[n_tmp1 - 1])
 
-    np.savetxt(os.path.join(data_dir, 'contrast_mv_%s_%d_%d_%d.csv' % (C_TARGET, mv_min, mv_max, mv_step)),  contrasts_mv, delimiter=',')
+    np.savetxt(os.path.join(data_dir, 'contrast_mv_%s_%d_%d_%d.csv' % (C_TARGET, mv_min, mv_max, mv_step)), contrasts_mv, delimiter=',')
     plot_iter_mv(contrasts_mv, mv_min, mv_max, mv_step, TimeMinus, TimePlus, Ntimes, contrast_floor, C_TARGET, data_dir)
 
     # Final Individual Tolerance allocation across 5 modes in units of pm.
@@ -217,4 +217,4 @@ if __name__ == '__main__':
     print(tables[0], '\n', tables[1])
     print(f'All analysis is saved to {data_dir}.')
 
-    print(np.sqrt((Q_individuals[0]**2 + Q_individuals[1]**2 + Q_individuals[2]**2 + Q_individuals[3]**2 + Q_individuals[4]**2)/5))
+    print(np.sqrt((Q_individuals[0]**2 + Q_individuals[1]**2 + Q_individuals[2]**2 + Q_individuals[3]**2 + Q_individuals[4]**2) / 5))

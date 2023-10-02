@@ -11,7 +11,7 @@ from pastis.pastis_analysis import calculate_segment_constraints
 from pastis.util import dh_mean
 
 from ultra.config import CONFIG_ULTRA
-from ultra.util import calculate_sensitivity_matrices, generate_tolerance_table
+from ultra.util import calculate_sensitivity_matrices, generate_tolerance_table, copy_ultra_ini
 from ultra.close_loop_analysis import req_closedloop_calc_batch
 from ultra.plotting import plot_iter_wf, plot_iter_mv
 
@@ -46,6 +46,7 @@ if __name__ == '__main__':
     wavescale_min = CONFIG_ULTRA.getint('close_loop', 'wavescale_min')
     wavescale_max = CONFIG_ULTRA.getint('close_loop', 'wavescale_max')
     wavescale_step = CONFIG_ULTRA.getint('close_loop', 'wavescale_step')
+    fractional_scale = CONFIG_ULTRA.getfloat('close_loop', 'fractional_scale')
 
     mv_min = CONFIG_ULTRA.getint('close_loop', 'mv_min')
     mv_max = CONFIG_ULTRA.getint('close_loop', 'mv_max')
@@ -63,6 +64,7 @@ if __name__ == '__main__':
 
     run_matrix.calc()
     data_dir = run_matrix.overall_dir
+    copy_ultra_ini(data_dir)
     print(f'All saved to {data_dir}.')
 
     tel = run_matrix.simulator
@@ -119,7 +121,7 @@ if __name__ == '__main__':
             print(tscale)
             tmp0 = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise,
                                              detector_noise, tscale, flux * Starfactor,
-                                             0.0001 * wavescale ** 2 * Qharris,
+                                             fractional_scale * wavescale ** 2 * Qharris,
                                              niter, tel.dh_mask, norm)
             tmp1 = tmp0['averaged_hist']
             n_tmp1 = len(tmp1)
@@ -143,14 +145,14 @@ if __name__ == '__main__':
             print(tscale)
             tmp0 = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise,
                                              detector_noise, tscale, entrace_flux * Starfactor,
-                                             0.0001 * opt_wavescale ** 2 * Qharris,
+                                             fractional_scale * opt_wavescale ** 2 * Qharris,
                                              niter, tel.dh_mask, norm)
             tmp1 = tmp0['averaged_hist']
             n_tmp1 = len(tmp1)
             contrasts_mv.append(tmp1[n_tmp1 - 1])
 
-    plot_iter_mv(contrasts_mv, mv_min, mv_max, mv_step,
-                 TimeMinus, TimePlus, Ntimes, contrast_floor, C_TARGET, data_dir)
+    np.savetxt(os.path.join(data_dir, 'contrast_mv_%s_%d_%d_%d.csv' % (C_TARGET, mv_min, mv_max, mv_step)),  contrasts_mv, delimiter=',')
+    plot_iter_mv(contrasts_mv, mv_min, mv_max, mv_step, TimeMinus, TimePlus, Ntimes, contrast_floor, C_TARGET, data_dir)
 
     # Final Individual Tolerance allocation across 5 modes in units of pm.
     coeffs_table = np.zeros([NUM_MODES, tel.nseg])  # TODO : coeffs_table = sort_1d_mus_per_seg(mus, NUM_MODES, tel.nseg)
@@ -160,10 +162,10 @@ if __name__ == '__main__':
 
     print('Computing tolerance table...')
     # check temporal maps for individual modes
-    Q_total = 1e3 * np.sqrt(np.mean(np.diag(0.0001 * opt_wavescale ** 2 * Qharris)))  # in pm
+    Q_total = 1e3 * np.sqrt(np.mean(np.diag(fractional_scale * opt_wavescale ** 2 * Qharris)))  # in pm
     Q_individual = []
     for mode in range(NUM_MODES):
-        Q_modes = 1e3 * np.sqrt(np.mean(0.0001 * opt_wavescale ** 2 * (coeffs_table[mode] ** 2)))  # in pm
+        Q_modes = 1e3 * np.sqrt(np.mean(fractional_scale * opt_wavescale ** 2 * (coeffs_table[mode] ** 2)))  # in pm
         Q_individual.append(Q_modes)
 
     Q_individuals = np.array(Q_individual)
@@ -185,7 +187,7 @@ if __name__ == '__main__':
     Qmode = np.array(Qharris_individual)
 
     c_total = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise, detector_noise,
-                                        opt_tscale, flux * Starfactor, 0.0001 * opt_wavescale ** 2 * Qharris, niter,
+                                        opt_tscale, flux * Starfactor, fractional_scale * opt_wavescale ** 2 * Qharris, niter,
                                         tel.dh_mask, norm)
 
     resultant_c_total = []
@@ -199,7 +201,7 @@ if __name__ == '__main__':
 
         contrast = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise,
                                              detector_noise, opt_tscale, flux * Starfactor,
-                                             0.0001 * opt_wavescale ** 2 * Qmode[mode],
+                                             fractional_scale * opt_wavescale ** 2 * Qmode[mode],
                                              niter, tel.dh_mask, norm)
         resultant_contrast = []
         c1 = contrast['averaged_hist']

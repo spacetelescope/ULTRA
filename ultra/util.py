@@ -2,6 +2,20 @@ import numpy as np
 import os
 import pandas as pd
 from astropy.table import QTable
+from shutil import copy
+from pastis.util import find_package_location
+
+
+def copy_ultra_ini(outdir):
+    """Copy the config_ultra to outdir
+
+    Parameters
+    ----------
+    outdir : string
+        target location of copied config file
+    """
+    print('Saving the configfile to outputs folder.')
+    copy(os.path.join(find_package_location(package='ultra'), 'config_ultra.ini'), outdir)
 
 
 def matrix_subsample(matrix, n, m):

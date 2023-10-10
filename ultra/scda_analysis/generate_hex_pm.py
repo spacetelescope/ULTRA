@@ -9,6 +9,8 @@ import pastis.util as util
 from pastis.simulators.scda_telescopes import HexRingAPLC
 from pastis.util import sort_1d_mus_per_actuator
 
+from ultra.config import CONFIG_ULTRA
+
 
 def plot_multimode_surface_maps2(tel, mus, mirror, data_dir=None):
     """Creates surface deformation maps (not WFE) for only 5 kinds of localized wavefront aberrations.
@@ -109,12 +111,9 @@ if __name__ == '__main__':
         NUM_MODES = 5
     tel.create_segmented_harris_mirror(fpath, pad_orientations, thermal=True, mechanical=False, other=False)
 
-    data_dir = '/Users/asahoo/Desktop/data_repos/paper2/static_pm_harris'
+    plot_dir = CONFIG_ULTRA.get('local_path', 'local_analysis_path')
 
-    mus1 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_1_1e-11.csv', delimiter=',')
-    # mus2 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_2_1e-11.csv', delimiter=',')
-    # mus3 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_3_1e-11.csv', delimiter=',')
-    # mus4 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_4_1e-11.csv', delimiter=',')
-    # mus5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_5_1e-11.csv', delimiter=',')
+    mus_data_path = CONFIG_ULTRA.get('local_path', 'local_data_path')
+    mus = np.genfromtxt(os.path.join(mus_data_path, 'mus_Hex_1_1e-11.csv'), delimiter=',')
 
-    plot_multimode_surface_maps2(tel, mus1, mirror='harris_seg_mirror', data_dir=data_dir)
+    plot_multimode_surface_maps2(tel, mus, mirror='harris_seg_mirror', data_dir=plot_dir)

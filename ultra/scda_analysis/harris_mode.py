@@ -18,7 +18,7 @@ from ultra.plotting import plot_iter_wf, plot_iter_mv
 if __name__ == '__main__':
 
     # Set number of rings
-    NUM_RINGS = 5
+    NUM_RINGS = 1
 
     # Define the type of WFE.
     WHICH_DM = 'harris_seg_mirror'

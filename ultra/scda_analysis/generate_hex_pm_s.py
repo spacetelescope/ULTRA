@@ -14,23 +14,28 @@ from ultra.config import CONFIG_ULTRA
 
 def plot_multimode_temporal_surface_maps(tel, mus, mirror, optimal_wavescale, fractional_scale, data_dir=None):
     """Creates surface deformation maps (not WFE) for only 5 kinds of localized wavefront aberrations.
+
     The input mode coefficients 'mus' are in units of *WFE* and need to be grouped by segment, meaning the array holds
     the mode coefficients as:
         mode1 on seg1, mode2 on seg1, ..., mode'nmodes' on seg1, mode1 on seg2, mode2 on seg2 and so on.
-    Parameters:
-    -----------
+
+    Parameters
+    ----------
     tel : class instance of internal simulator
         the simulator to plot the surface maps for
     mus : 1d array
         1d array of standard deviations for all modes on each segment, in nm WFE
-    num_modes : int
-        number of local modes used to poke each segment
     mirror : str
         'harris_seg_mirror' or 'seg_mirror', segmented mirror of simulator 'tel' to use for plotting
+    optimal_wavescale : float
+        additional value multiplied to mus, saved in tolerance_table2.txt,
+        see the directory where an internal simulator data are saved while running launcher scripts.
+    fractional_scale : float
+        additional value multiplied to mus, saved in config_ultra.ini,
+        see the directory where an internal simulator data are saved while running launcher scripts.
     data_dir : str, default None
         path to save the plots; if None, then not saved to disk
     """
-
     mus_per_actuator = sort_1d_mus_per_actuator(mus, 5, tel.nseg)  # in nm
 
     mu_maps = []
@@ -89,7 +94,7 @@ def plot_multimode_temporal_surface_maps(tel, mus, mirror, optimal_wavescale, fr
     cbar.set_label("Surface (pm/s)", fontsize=15)
     plt.tight_layout()
 
-    plt.savefig(os.path.join(data_dir, 'temporal_pm_%d_hex.pdf' % tel.num_rings))
+    plt.savefig(os.path.join(data_dir, 'temporal_pm_%d_hex.png' % tel.num_rings))
 
 
 if __name__ == '__main__':

@@ -14,23 +14,22 @@ from ultra.config import CONFIG_ULTRA
 
 def plot_multimode_surface_maps2(tel, mus, mirror, data_dir=None):
     """Creates surface deformation maps (not WFE) for only 5 kinds of localized wavefront aberrations.
+
     The input mode coefficients 'mus' are in units of *WFE* and need to be grouped by segment, meaning the array holds
     the mode coefficients as:
         mode1 on seg1, mode2 on seg1, ..., mode'nmodes' on seg1, mode1 on seg2, mode2 on seg2 and so on.
-    Parameters:
-    -----------
+
+    Parameters
+    ----------
     tel : class instance of internal simulator
         the simulator to plot the surface maps for
     mus : 1d array
         1d array of standard deviations for all modes on each segment, in nm WFE
-    num_modes : int
-        number of local modes used to poke each segment
     mirror : str
         'harris_seg_mirror' or 'seg_mirror', segmented mirror of simulator 'tel' to use for plotting
     data_dir : str, default None
         path to save the plots; if None, then not saved to disk
     """
-
     mus_per_actuator = sort_1d_mus_per_actuator(mus, 5, tel.nseg)  # in nm
 
     mu_maps = []

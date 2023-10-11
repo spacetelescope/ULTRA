@@ -133,7 +133,6 @@ if __name__ == '__main__':
     # Define the type of WFE.
     WHICH_DM = 'harris_seg_mirror'
 
-
     if WHICH_DM == 'harris_seg_mirror':
         fpath = CONFIG_PASTIS.get('LUVOIR', 'harris_data_path')  # path to Harris spreadsheet
         pad_orientations = np.pi / 2 * np.ones(CONFIG_PASTIS.getint('LUVOIR', 'nb_subapertures'))

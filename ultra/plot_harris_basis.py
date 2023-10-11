@@ -10,8 +10,10 @@ from pastis.config import CONFIG_PASTIS
 from pastis.simulators.scda_telescopes import HexRingAPLC
 import pastis.util as util
 
+from ultra.config import CONFIG_ULTRA
 
-def create_segmented_harris_mirror(tel, filepath, pad_orientation, thermal=True, mechanical=True, other=True):
+
+def create_segmented_harris_mirror(tel, filepath, pad_orientation, thermal=True, mechanical=False, other=False):
     """Create an actuated segmented mirror with a modal basis made of the thermal modes provided by L3Harris.
 
     Thermal modes: a, h, i, j, k
@@ -24,10 +26,24 @@ def create_segmented_harris_mirror(tel, filepath, pad_orientation, thermal=True,
 
     Parameters
     ----------
+    tel : class instance of an internal simulator
+        the telescope for which we want to plot a segment poked with a L3Harris mode.
     filepath : string
         absolute path to the xls spreadsheet containing the Harris segment modes
-    pad_orientation : ndarray
+    pad_orientation : numpy 1-D array
         angles of orientation of the mounting pads of the primary, in rad, one per segment
+    thermal : bool, default True
+        whether to include surface deformation due to thermal change
+    mechanical : bool, default False
+        whether to include surface deformation due to mechanical change
+    other : bool, default False
+        whether to include surface deformation due other e
+
+    Returns
+    -------
+    harris_mode_basis : hcipy ModeBasis
+        A basis of modes. Number of modes is equal to number of segments times total number of modes.
+
     """
     # Read the spreadsheet containing the Harris segment modes
 
@@ -117,23 +133,28 @@ if __name__ == '__main__':
     # Define the type of WFE.
     WHICH_DM = 'harris_seg_mirror'
 
+
     if WHICH_DM == 'harris_seg_mirror':
         fpath = CONFIG_PASTIS.get('LUVOIR', 'harris_data_path')  # path to Harris spreadsheet
         pad_orientations = np.pi / 2 * np.ones(CONFIG_PASTIS.getint('LUVOIR', 'nb_subapertures'))
         DM_SPEC = (fpath, pad_orientations, True, False, False)
         NUM_MODES = 5  # TODO: works only for thermal modes currently
 
+    # Instantiate the internal simulator.
     optics_dir = os.path.join(util.find_repo_location(), 'data', 'SCDA')
     sampling = 4
-    tel = HexRingAPLC(optics_dir, NUM_RINGS, sampling)
+    tel_hex = HexRingAPLC(optics_dir, NUM_RINGS, sampling)
 
-    harris_maps = create_segmented_harris_mirror(tel, fpath, pad_orientations, thermal=True, mechanical=True, other=True)
+    harris_maps = create_segmented_harris_mirror(tel_hex, fpath, pad_orientations, thermal=True, mechanical=True, other=True)
+    print(type(harris_maps))
 
     size = int(np.sqrt(len(harris_maps[0])))
 
     # Square region of interest, dependent on the size of segment.
     l1 = int(250)  # optimized value for 1 ring telescope geometry only.
     l2 = int(750)
+
+    plot_dir = CONFIG_ULTRA.get('local_path', 'local_analysis_path')
 
     plt.figure(figsize=(14, 9))
     plt.subplot2grid(shape=(2, 6), loc=(0, 0), colspan=2)
@@ -184,4 +205,8 @@ if __name__ == '__main__':
 
     plt.tight_layout()
     plt.show()
+    plt.savefig(os.path.join(plot_dir, 'harris_harris.png'))
+
+    print(f'Harris basis plot is saved to: {plot_dir} .')
+
 

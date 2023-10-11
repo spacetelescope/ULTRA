@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 
@@ -9,7 +10,7 @@ import hcipy
 if __name__ == '__main__':
 
     # Set number of rings
-    NUM_RINGS = 5
+    NUM_RINGS = 1
 
     # Define the type of WFE.
     WHICH_DM = 'harris_seg_mirror'
@@ -25,12 +26,19 @@ if __name__ == '__main__':
     tel = HexRingAPLC(optics_dir, NUM_RINGS, sampling)
 
     tel.create_segmented_harris_mirror(fpath, pad_orientations, thermal=True, mechanical=False, other=False)
-    num_actuators = tel.harris_sm.num_actuators
+
+    num_actuators = tel.harris_sm.num_actuators   # equal to NUM_MODES * Total segments
+
+    # specify the segment to be poked.
+    segnum = 3   # largest values is equal to total no. of segments
+    mode_number = 0  # can be 0, 1, 2 ... NUM_MODES-1
+    actuator_id = NUM_MODES * (segnum - 1) + mode_number
 
     harris_actuators = np.zeros(num_actuators)
-    segnum = 85
-    segid = 5 * (segnum - 1)  # increase by step size of +5
-    harris_actuators[segid] = 1e-9
+    harris_actuators[actuator_id] = 1e-9   # poking an actuator with 1nm aberration.
     tel.harris_sm.actuators = harris_actuators
     psf, inter = tel.calc_psf(display_intermediate=False, return_intermediate='efield', norm_one_photon=True)
+
+    plt.figure()
     hcipy.imshow_field(inter['harris_seg_mirror'].phase, mask=tel.aperture)
+    plt.show()

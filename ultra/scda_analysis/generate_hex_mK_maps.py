@@ -8,6 +8,8 @@ from pastis.config import CONFIG_PASTIS
 import pastis.util as util
 from pastis.simulators.scda_telescopes import HexRingAPLC
 
+from ultra.config import CONFIG_ULTRA
+
 
 if __name__ == '__main__':
 
@@ -28,14 +30,12 @@ if __name__ == '__main__':
 
     optics_dir = os.path.join(util.find_repo_location(), 'data', 'SCDA')
     sampling = 4
-    data_dir = '/Users/asahoo/Desktop/data_repos/paper2/static_mK_harris'
+
+    plot_dir = CONFIG_ULTRA.get('local_path', 'local_analysis_path')
 
     # Thermal tolerance coefficients
-    mus = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_1_1e-11.csv', delimiter=',')
-    # mus = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_2_1e-11.csv', delimiter=',')
-    # mus = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_3_1e-11.csv', delimiter=',')
-    # mus = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_4_1e-11.csv', delimiter=',')
-    # mus = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_5_1e-11.csv', delimiter=',')
+    mus_data_path = CONFIG_ULTRA.get('local_path', 'local_data_path')
+    mus = np.genfromtxt(os.path.join(mus_data_path, 'mus_Hex_1_1e-11.csv'), delimiter=',')
 
     tel = HexRingAPLC(optics_dir, NUM_RINGS, sampling)
 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     plt.figure(figsize=(32, 5))
     plt.subplot(1, 5, 1)
-    # plt.title("Faceplates Silvered", fontsize=18)
+    plt.title("Faceplates Silvered", fontsize=18)
     plot_norm = TwoSlopeNorm(vcenter=0.25, vmin=0, vmax=0.5)
     hcipy.imshow_field((tel2.sm.surface) * 1e3, norm=plot_norm, cmap='YlOrRd')
     plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True, labelsize=15)
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     plt.tight_layout()
 
     plt.subplot(1, 5, 2)
-    # plt.title("Bulk", fontsize=18)
+    plt.title("Bulk", fontsize=18)
     plot_norm = TwoSlopeNorm(vcenter=3.5, vmin=0, vmax=7)
     hcipy.imshow_field((tel3.sm.surface) * 1e3, norm=plot_norm, cmap='YlOrRd')
     plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True, labelsize=15)
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     plt.tight_layout()
 
     plt.subplot(1, 5, 3)
-    # plt.title("Gradiant Radial", fontsize=18)
+    plt.title("Gradiant Radial", fontsize=18)
     plot_norm = TwoSlopeNorm(vcenter=3, vmin=0, vmax=6)
     hcipy.imshow_field((tel4.sm.surface) * 1e3, norm=plot_norm, cmap='YlOrRd')
     plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True, labelsize=15)
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     plt.tight_layout()
 
     plt.subplot(1, 5, 4)
-    # plt.title("Gradient X lateral", fontsize=18)
+    plt.title("Gradient X lateral", fontsize=18)
     plot_norm = TwoSlopeNorm(vcenter=1.0, vmin=0, vmax=2)
     hcipy.imshow_field((tel5.sm.surface) * 1e3, norm=plot_norm, cmap='YlOrRd')
     plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True, labelsize=15)
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     plt.tight_layout()
 
     plt.subplot(1, 5, 5)
-    # plt.title("Gradient Z axial", fontsize=18)
+    plt.title("Gradient Z axial", fontsize=18)
     plot_norm = TwoSlopeNorm(vcenter=1, vmin=0, vmax=2)
     hcipy.imshow_field((tel6.sm.surface) * 1e3, norm=plot_norm, cmap='YlOrRd')
     plt.tick_params(top=False, bottom=True, left=True, right=False, labelleft=True, labelbottom=True, labelsize=15)
@@ -123,6 +123,6 @@ if __name__ == '__main__':
     plt.tight_layout()
 
     plt.tight_layout()
-    plt.savefig(os.path.join(data_dir, 'harris_mK_%d_hex.pdf' % NUM_RINGS))
+    plt.savefig(os.path.join(plot_dir, 'harris_mK_%d_hex.png' % NUM_RINGS))
 
-
+    print(f'Static mK plot is saved to: {plot_dir} .')

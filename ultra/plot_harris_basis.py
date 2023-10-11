@@ -12,7 +12,7 @@ import pastis.util as util
 
 
 def create_segmented_harris_mirror(tel, filepath, pad_orientation, thermal=True, mechanical=True, other=True):
-    """Create an actuated segmented mirror with a modal basis made of the thermal modes provided by Harris.
+    """Create an actuated segmented mirror with a modal basis made of the thermal modes provided by L3Harris.
 
     Thermal modes: a, h, i, j, k
     Mechanical modes: e, f, g
@@ -29,7 +29,6 @@ def create_segmented_harris_mirror(tel, filepath, pad_orientation, thermal=True,
     pad_orientation : ndarray
         angles of orientation of the mounting pads of the primary, in rad, one per segment
     """
-
     # Read the spreadsheet containing the Harris segment modes
 
     df = pd.read_excel(filepath)
@@ -133,7 +132,7 @@ if __name__ == '__main__':
     size = int(np.sqrt(len(harris_maps[0])))
 
     # Square region of interest, dependent on the size of segment.
-    l1 = int(250)  # optimized value for 1 ring only.
+    l1 = int(250)  # optimized value for 1 ring telescope geometry only.
     l2 = int(750)
 
     plt.figure(figsize=(14, 9))
@@ -184,3 +183,5 @@ if __name__ == '__main__':
     cbar.set_label("pm", fontsize=10)
 
     plt.tight_layout()
+    plt.show()
+

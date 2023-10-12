@@ -2,6 +2,8 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+from ultra.config import CONFIG_ULTRA
+
 
 def plot_mus_all_hexrings(mu1, mu2, mu3, mu4, mu5, c0, out_dir, save=False):
     """
@@ -205,28 +207,17 @@ def plot_single_thermal_mode_all_hex(mu1, mu2, mu3, mu4, mu5, c0, mode, out_dir,
 
 if __name__ == '__main__':
 
-    # Thermal tolerance coefficients for DH 1e-11
-    mus5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_5_1e-11.csv', delimiter=',')
-    mus4 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_4_1e-11.csv', delimiter=',')
-    mus3 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_3_1e-11.csv', delimiter=',')
-    mus2 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_2_1e-11.csv', delimiter=',')
-    mus1 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/paper2/mus_Hex_1_1e-11.csv', delimiter=',')
+    c_target = 1e-11
 
-    # Segment level zernike coefficients
-    # z5 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_5.csv', delimiter=',')
-    # z4 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_4.csv', delimiter=',')
-    # z3 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_3.csv', delimiter=',')
-    # z2 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_2.csv', delimiter=',')
-    # z1 = np.genfromtxt('/Users/asahoo/Desktop/data_repos/plots_mid_zernike/mus_1e-11_1.csv', delimiter=',')
+    # Get thermal tolerance coefficients for corresponding c_target
+    mus_data_path = CONFIG_ULTRA.get('local_path', 'local_data_path')
+    mus1 = np.genfromtxt(os.path.join(mus_data_path, 'mus_Hex_1_1e-11.csv'), delimiter=',')
+    mus2 = np.genfromtxt(os.path.join(mus_data_path, 'mus_Hex_2_1e-11.csv'), delimiter=',')
+    mus3 = np.genfromtxt(os.path.join(mus_data_path, 'mus_Hex_3_1e-11.csv'), delimiter=',')
+    mus4 = np.genfromtxt(os.path.join(mus_data_path, 'mus_Hex_4_1e-11.csv'), delimiter=',')
+    mus5 = np.genfromtxt(os.path.join(mus_data_path, 'mus_Hex_5_1e-11.csv'), delimiter=',')
 
-    resdir = '/Users/asahoo/Desktop/data_repos/paper2/'
-    # plot_mus_all_hexrings(mus1, mus2, mus3, mus4, mus5, 1e-11, resdir, save=False)
-    # plot_single_thermal_mode_all_hex(z1, z2, z3, z4, z5, 1e-11,
-    #                                  mode="Astig", out_dir=resdir, save=True, inner_segments=True)
+    plot_dir = CONFIG_ULTRA.get('local_path', 'local_analysis_path')
 
-    plot_single_thermal_mode_all_hex(mus1, mus2, mus3, mus4, mus5, 1e-11,
-                                     mode="Gradiant Z axial", out_dir=resdir, save=True, inner_segments=False)
-
-
-
-
+    plot_single_thermal_mode_all_hex(mus1, mus2, mus3, mus4, mus5, c_target,
+                                     mode="Gradiant Z axial", out_dir=plot_dir, save=True, inner_segments=False)

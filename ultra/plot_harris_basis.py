@@ -207,5 +207,3 @@ if __name__ == '__main__':
     plt.savefig(os.path.join(plot_dir, 'harris_harris.png'))
 
     print(f'Harris basis plot is saved to: {plot_dir} .')
-
-

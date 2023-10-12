@@ -6,7 +6,8 @@ from ultra.config import CONFIG_ULTRA
 
 
 def plot_mus_all_hexrings(mu1, mu2, mu3, mu4, mu5, c0, out_dir, save=False):
-    """
+    """Plots static segment level tolerances for all modes, all SCDA designs.
+
     Parameters
     ----------
     mu1 : numpy.ndarray
@@ -28,7 +29,7 @@ def plot_mus_all_hexrings(mu1, mu2, mu3, mu4, mu5, c0, out_dir, save=False):
         The set-target contrast for which the above tolerances were calculated.
     out_dir : str
         path where the plot will be saved
-    save : bool
+    save : bool, default False
         whether to save the plot
     """
     plt.figure(figsize=(10, 10))
@@ -49,7 +50,8 @@ def plot_mus_all_hexrings(mu1, mu2, mu3, mu4, mu5, c0, out_dir, save=False):
 
 
 def plot_single_thermal_mode_all_hex(mu1, mu2, mu3, mu4, mu5, c0, mode, out_dir, save=False, inner_segments=False):
-    """
+    """Plots static tolerance coefficients for a single Harris mode, for all SCDA designs.
+
     Parameters
     ----------
     mu1 : numpy.ndarray
@@ -75,12 +77,11 @@ def plot_single_thermal_mode_all_hex(mu1, mu2, mu3, mu4, mu5, c0, mode, out_dir,
         "Gradiant X lateral" or "Defocus", or "Gradiant Z axial" or "Astig"
     out_dir : str
         path where the plot will be saved
-    save : bool
+    save : bool, default False
         whether to save the plot
-    inner_segments : bool
+    inner_segments : bool, default False
         whether to plot tolerances for the inner segments only
     """
-
     # for 1-HexRingTelescope
     mus1_table = np.zeros([5, 7])
     for qq in range(5):
@@ -221,3 +222,4 @@ if __name__ == '__main__':
 
     plot_single_thermal_mode_all_hex(mus1, mus2, mus3, mus4, mus5, c_target,
                                      mode="Gradiant Z axial", out_dir=plot_dir, save=True, inner_segments=False)
+    plot_mus_all_hexrings(mus1, mus2, mus3, mus4, mus5, c_target, plot_dir, save=True)

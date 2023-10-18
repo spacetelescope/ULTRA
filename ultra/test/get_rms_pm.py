@@ -14,7 +14,7 @@ def calculate_rms_surface_aberration_per_ring(tel, mus):
     mus_per_actuator = sort_1d_mus_per_actuator(mus, num_mode, tel.nseg)
 
     def calc_per_ring_rms(seg1, seg2, design_name, ring):
-        for mode in range(4, 5):
+        for mode in range(0, num_mode):
             tel.harris_sm.flatten()
             coeffs = mus_per_actuator[mode]
             for seg in range(seg1, seg2):

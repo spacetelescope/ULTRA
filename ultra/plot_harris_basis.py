@@ -37,7 +37,7 @@ def create_segmented_harris_mirror(tel, filepath, pad_orientation, thermal=True,
     mechanical : bool, default False
         whether to include surface deformation due to mechanical change
     other : bool, default False
-        whether to include surface deformation due other e
+        whether to include surface deformation due other physical disturbances
 
     Returns
     -------

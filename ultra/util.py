@@ -2,6 +2,20 @@ import numpy as np
 import os
 import pandas as pd
 from astropy.table import QTable
+from shutil import copy
+from pastis.util import find_package_location
+
+
+def copy_ultra_ini(outdir):
+    """Copy the config_ultra to outdir
+
+    Parameters
+    ----------
+    outdir : string
+        target location of copied config file
+    """
+    print('Saving the configfile to outputs folder.')
+    copy(os.path.join(find_package_location(package='ultra'), 'config_ultra.ini'), outdir)
 
 
 def matrix_subsample(matrix, n, m):
@@ -116,8 +130,7 @@ def calc_mean_tolerance_per_mode(opt_wavescale, mus, nmodes, nsegs, tscale):
 
 def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, contrast_floor,
                              opt_wavescale, opt_tscale, data_dir):
-    """
-    Creates a tolerance table which includes individual RMS weights across all segments per modal basis (can be
+    """Creates a tolerance table which includes individual RMS weights across all segments per modal basis (can be
     segment-level Zernike, or Harris modes), contrast allocation for each mode, total contrast due to all modes, and
     telescope properties.
 
@@ -156,14 +169,14 @@ def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, cont
     mode = np.arange(0, len(Q_per_mode), 1)
     data = np.array([mode, Q_per_mode, c_per_mode]).T
     df1 = pd.DataFrame(data)
-    df1.columns = ["Mode Number", "Tolerance (in pm)", "Contrast"]
+    df1.columns = ["Mode Number", "Tolerance (in pm/s)", "Contrast"]
     df1.loc[len(df1.index)] = ['RMS Total', Q_total, c_total]
 
     table1 = QTable.from_pandas(df1)
 
     df2 = pd.DataFrame()
     df2[''] = None
-    df2['Telescope'] = ['total segs', 'diam', 'seg diam', 'contrast_floor', 'iwa', 'owa', 'opt_wavescale', 'opt_tscale']
+    df2['Telescope'] = ['total segs', 'diam', 'seg diam', 'contrast_floor', 'iwa', 'owa', 'opt_wavescale', 'opt_tscale(in s)']
     df2['Values'] = [tel.nseg, format(tel.diam, ".2f"), format(tel.segment_circumscribed_diameter, ".2f"),
                      format(contrast_floor, ".2e"), tel.iwa, tel.owa, opt_wavescale, opt_tscale]
 

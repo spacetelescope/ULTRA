@@ -5,3 +5,5 @@ __pycache__/
 *build*/
 .idea/
 .DS_Store
+.ipynb_checkpoints/
+ultra.egg-info

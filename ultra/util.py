@@ -19,7 +19,22 @@ def copy_ultra_ini(outdir):
 
 
 def matrix_subsample(matrix, n, m):
-    # return a matrix of shape (n,m)
+    """Reshapes a 2D matrix to the shape (n, m), by summing over sub pixels.
+
+    Parameters
+    ----------
+    matrix : numpy 2d array
+        the original matrix to be reshaped
+    n : int
+        length of the reshaped matrix
+    m : int
+        breadth of the reshaped matrix
+
+    Returns
+    -------
+    data_reduced : numpy 2d array
+        the reshaped matrix
+    """
     arr_sum = []
     length = matrix.shape[0] // n  # block length
     breadth = matrix.shape[1] // m  # block breadth
@@ -32,6 +47,22 @@ def matrix_subsample(matrix, n, m):
 
 
 def matrix_subsample_fast(matrix, n, m):
+    """Reshapes a 2D matrix to the shape (n, m) by summing over sub pixels.
+
+    Parameters
+    ----------
+    matrix : numpy 2d array
+        the original matrix to be reshaped
+    n : int
+        length of the reshaped matrix
+    m : int
+        breadth of the reshaped matrix
+
+    Returns
+    -------
+    data_reduced : numpy 2d array
+        the reshaped matrix
+    """
     length = matrix.shape[0] // n   # block length
     breadth = matrix.shape[1] // m  # block breadth
     new_shape = (n, length, m, breadth)
@@ -42,7 +73,30 @@ def matrix_subsample_fast(matrix, n, m):
 
 def calculate_sensitivity_matrices(e0_coron, e0_obwfs, efield_coron_real, efield_coron_imag,
                                    efield_obwfs_real, efield_obwfs_imag, subsample_factor):
+    """Calculates sensitivity matrices at coronagraphic-focal and wavefront sensor plane.
 
+    Parameters
+    ----------
+    e0_coron : ndarray
+        reference electric field at the coronagraphic plane
+    e0_obwfs : array
+        reference electric field at the wavefront sensor plane
+    efield_coron_real : ndarray
+        list of real part of poked efields at coronagraphic plane
+    efield_coron_imag : ndarray
+        list of imaginary part of poked efields at coronagraphic plane
+    efield_obwfs_real : ndarray
+        list of real part of poked efields at wfs plane
+    efield_obwfs_imag : ndarray
+        list of imaginary part of poked efields at wfs plane
+    subsample_factor : int
+        factor by which the size of wfs data is to be reduced.
+
+    Returns
+    -------
+    matrix : dict
+        with keys ref_image_plane, ref_wfs_plane, senitivity_image_plane, sensitvity_wfs_plane
+    """
     total_sci_pix = np.square(e0_coron.shape[1])
     total_pupil_pix = np.square(e0_obwfs.shape[1])
 
@@ -60,7 +114,7 @@ def calculate_sensitivity_matrices(e0_coron, e0_obwfs, efield_coron_real, efield
     ref_wfs_real_sub = np.reshape(matrix_subsample(e0_obwfs[0], n_sub_pix, n_sub_pix), int(np.square(n_sub_pix)))
     ref_wfs_imag_sub = np.reshape(matrix_subsample(e0_obwfs[1], n_sub_pix, n_sub_pix), int(np.square(n_sub_pix)))
     ref_wfs_sub = (ref_wfs_real_sub + 1j * ref_wfs_imag_sub) / subsample_factor
-    # subsample_factor**2 is multiplied here to preserve total intensity, same goes for g_obwfs_downsampled
+    # 1/subsample_factor is multiplied here to preserve total intensity, same goes for g_obwfs_downsampled
 
     ref_obwfs_downsampled = np.zeros([int(np.square(n_sub_pix)), 1, 2])
     ref_obwfs_downsampled[:, 0, 0] = ref_wfs_sub.real

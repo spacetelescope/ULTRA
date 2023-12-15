@@ -1,3 +1,7 @@
+"""
+This module contains various handy plotting functions used by launcher scripts, or notebooks.
+"""
+
 from matplotlib.colors import TwoSlopeNorm, LinearSegmentedColormap
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,11 +15,13 @@ from ultra.config import CONFIG_ULTRA
 
 def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_dir=None, fname=None):
     """Creates surface deformation maps (not WFE) for localized wavefront aberrations.
+
     The input mode coefficients 'mus' are in units of *WFE* and need to be grouped by segment, meaning the array holds
     the mode coefficients as:
         mode1 on seg1, mode2 on seg1, ..., mode'nmodes' on seg1, mode1 on seg2, mode2 on seg2 and so on.
-    Parameters:
-    -----------
+
+    Parameters
+    ----------
     tel : class instance of internal simulator
         the simulator to plot the surface maps for
     mus : 1d array
@@ -90,7 +96,6 @@ def plot_iter_wf(variance_q, contrasts, contrast_floor, data_dir):
     wavescale_optimal : int
         optimal scaling factor to be later mulitplied to variance_q, fractional scale to give the total
         wavefront error drift in pm/s.
-
     """
     wavescale_min = CONFIG_ULTRA.getint('close_loop', 'wavescale_min')
     wavescale_max = CONFIG_ULTRA.getint('close_loop', 'wavescale_max')
@@ -165,7 +170,6 @@ def plot_iter_mv(contrasts, contrast_floor, data_dir):
         static coronagraphic contrast without any external aberration.
     data_dir : str
         path to save the plot.
-
     """
     mv_min = CONFIG_ULTRA.getint('close_loop', 'mv_min')
     mv_max = CONFIG_ULTRA.getint('close_loop', 'mv_max')
@@ -217,7 +221,6 @@ def plot_pastis_matrix(pastis_matrix, data_dir, vcenter, vmin, vmax):
         TwoSlopeNorm's vmin
     vmax : float
         TwoSlopeNorm's vmax
-
     """
     clist = [(0.1, 0.6, 1.0), (0.05, 0.05, 0.05), (0.8, 0.5, 0.1)]
     blue_orange_divergent = LinearSegmentedColormap.from_list("custom_blue_orange", clist)

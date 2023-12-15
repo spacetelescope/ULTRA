@@ -1,3 +1,7 @@
+"""
+Example script to instantiate a telescope simulator, and propagate different kinds of aberration at the entrance pupil.
+"""
+
 import numpy as np
 
 from pastis.config import CONFIG_PASTIS

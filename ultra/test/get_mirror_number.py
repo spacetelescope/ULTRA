@@ -1,3 +1,7 @@
+"""
+Code to visualize mirror number against actuator poke.
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import os

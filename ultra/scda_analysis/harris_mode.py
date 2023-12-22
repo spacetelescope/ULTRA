@@ -1,3 +1,9 @@
+"""
+This is the main launcher script to do a full wavefront error budget analysis for L3 Harris mode for
+all SCDA coronagraph designs.
+"""
+
+
 from astropy.io import fits
 import astropy.units as u
 import exoscene.star

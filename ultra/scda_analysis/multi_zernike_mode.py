@@ -1,3 +1,9 @@
+"""
+This is the main launcher script to do a full wavefront error budget analysis for mid-spatial frequency WFE for
+all SCDA coronagraph design.
+"""
+
+
 from astropy.io import fits
 import astropy.units as u
 import exoscene.star

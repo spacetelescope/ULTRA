@@ -1,3 +1,7 @@
+"""
+This module contains functions to plot 1-D static tolerances.
+"""
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,19 +15,19 @@ def plot_mus_all_hexrings(mu1, mu2, mu3, mu4, mu5, c0, out_dir, save=False):
     Parameters
     ----------
     mu1 : numpy.ndarray
-        Each element represents tolerance (in units of nm) for segment per a segment level aberration mode
+        Each element represents tolerance (in units of nm) for segment per segment level aberration mode
         for the 1-HexRingTelescope.
     mu2 : numpy.ndarray
-        Each element represents tolerance (in units of nm) for segment per a segment level aberration mode
+        Each element represents tolerance (in units of nm) for segment per segment level aberration mode
         for the 2-HexRingTelescope.
     mu3 : numpy.ndarray
-        Each element  represents tolerance (in units of nm) for segment per a segment level aberration mode
+        Each element  represents tolerance (in units of nm) for segment per segment level aberration mode
         for the 3-HexRingTelescope.
     mu4 : numpy.ndarray
-        Each element represents tolerance (in units of nm) for segment per a segment level aberration mode
+        Each element represents tolerance (in units of nm) for segment per segment level aberration mode
         for the 4-HexRingTelescope.
     mu5 : numpy.ndarray
-        Each element represents tolerance (in units of nm) for segment per a segment level aberration mode
+        Each element represents tolerance (in units of nm) for segment per segment level aberration mode
         for the 5-HexRingTelescope.
     c0 : float
         The set-target contrast for which the above tolerances were calculated.
@@ -55,19 +59,19 @@ def plot_single_thermal_mode_all_hex(mu1, mu2, mu3, mu4, mu5, c0, mode, out_dir,
     Parameters
     ----------
     mu1 : numpy.ndarray
-        Each element represents tolerance (in units of nm) for segment per a segment level aberration mode
+        Each element represents tolerance (in units of nm) for segment per segment level aberration mode
         for the 1-HexRingTelescope.
     mu2 : numpy.ndarray
-        Each element represents tolerance (in units of nm) for segment per a segment level aberration mode
+        Each element represents tolerance (in units of nm) for segment per segment level aberration mode
         for the 2-HexRingTelescope.
     mu3 : numpy.ndarray
-        Each element  represents tolerance (in units of nm) for segment per a segment level aberration mode
+        Each element  represents tolerance (in units of nm) for segment per segment level aberration mode
         for the 3-HexRingTelescope.
     mu4 : numpy.ndarray
-        Each element represents tolerance (in units of nm) for segment per a segment level aberration mode
+        Each element represents tolerance (in units of nm) for segment per segment level aberration mode
         for the 4-HexRingTelescope.
     mu5 : numpy.ndarray
-        Each element represents tolerance (in units of nm) for segment per a segment level aberration mode
+        Each element represents tolerance (in units of nm) for segment per segment level aberration mode
         for the 5-HexRingTelescope.
     c0 : float
         The set-target contrast for which the above tolerances were calculated.

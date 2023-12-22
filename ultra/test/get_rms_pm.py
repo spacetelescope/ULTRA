@@ -1,3 +1,7 @@
+"""
+This script generates mean rms tolerance per ring for a SCDA telescope simulator.
+"""
+
 import os
 import numpy as np
 
@@ -10,6 +14,15 @@ from ultra.config import CONFIG_ULTRA
 
 
 def calculate_rms_surface_aberration_per_ring(tel, mus):
+    """Calculates RMS tolerances per ring for an SCDA telescope simulator.
+
+    Parameters
+    ----------
+    tel :  class instantiate of the internal simulator.
+        the simulator to plot the surface maps for
+    mus : 1d numpy array
+        toleranes computed for the telescope simulator, in units of nm
+    """
     num_mode = int(len(mus) / tel.nseg)
     mus_per_actuator = sort_1d_mus_per_actuator(mus, num_mode, tel.nseg)
 

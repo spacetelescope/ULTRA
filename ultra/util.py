@@ -1,3 +1,8 @@
+"""
+This module contains various convenience function frequently used at other places in the package.
+"""
+
+
 import numpy as np
 import os
 import pandas as pd
@@ -149,6 +154,22 @@ def calculate_sensitivity_matrices(e0_coron, e0_obwfs, efield_coron_real, efield
 
 
 def sort_1d_mus_per_actuator(mus, nmodes, nsegs):
+    """Sorts tolerances into telescope actuator dimensions.
+
+    Parameters
+    ----------
+    mus : 1-D numpy array
+        tolerances for per mode, typically in units of nm.
+    nmodes : int
+        number of wavefront error modes
+    nsegs: int
+        total number of telescope segments
+
+    Returns
+    -------
+    coeffs_numaps : numpy ndarray
+        sorted tolerances in telescope actuator dimension
+    """
     num_actuators = nmodes * nsegs
     coeffs_numaps = np.zeros([nmodes, num_actuators])
     for mode in range(nmodes):
@@ -161,6 +182,22 @@ def sort_1d_mus_per_actuator(mus, nmodes, nsegs):
 
 
 def sort_1d_mus_per_seg(mus, nmodes, nsegs):
+    """Sorts tolerances into telescope per segment.
+
+    Parameters
+    ----------
+    mus : 1-D numpy array
+        tolerances for per mode, typically in units of nm.
+    nmodes : int
+        number of wavefront error modes
+    nsegs: int
+        total number of telescope segments
+
+    Returns
+    -------
+    coeffs_table : numpy ndarray
+        sorted tolerances into telescope segment.
+    """
     coeffs_table = np.zeros([nmodes, nsegs])
     for mode in range(nmodes):
         for seg in range(nsegs):
@@ -169,10 +206,25 @@ def sort_1d_mus_per_seg(mus, nmodes, nsegs):
 
 
 def calc_mean_tolerance_per_mode(opt_wavescale, mus, nmodes, nsegs, tscale):
+    """Calculates total close loop tolerances.
+
+    Parameters
+    ----------
+    opt_wavescale : float
+        optimal wavefront sensing scale, (dimensionless).
+    mus : numpy 1d-array
+        static tolerances for per mode, typically in units of nm.
+    nmodes : int
+        number of wavefront error modes considered
+    nsegs : int
+        total number of segments
+    tscale : float
+        optimal wavefront sensing time, in sec
+    """
     coeffs_table = sort_1d_mus_per_seg(mus, nmodes, nsegs)
     Qtotal = np.diag(np.asarray(mus ** 2))
 
-    total_dynamic_tolerances = np.diag(0.0001 * opt_wavescale ** 2 * Qtotal)
+    total_dynamic_tolerances = np.diag(0.0001 * opt_wavescale ** 2 * Qtotal)   # TODO: get 0.0001 from Config
     per_mode_dynamic_tolerances = []
     for mode in range(nmodes):
         individual_dynamic_tolerance = 0.0001 * opt_wavescale ** 2 * (coeffs_table[mode] ** 2)
@@ -184,7 +236,9 @@ def calc_mean_tolerance_per_mode(opt_wavescale, mus, nmodes, nsegs, tscale):
 
 def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, contrast_floor,
                              opt_wavescale, opt_tscale, data_dir):
-    """Creates a tolerance table which includes individual RMS weights across all segments per modal basis (can be
+    """Creates a tolerance table.
+
+    Creates a tolerance which includes individual RMS weights across all segments per modal basis (can be
     segment-level Zernike, or Harris modes), contrast allocation for each mode, total contrast due to all modes, and
     telescope properties.
 
@@ -217,9 +271,7 @@ def generate_tolerance_table(tel, Q_per_mode, Q_total, c_per_mode, c_total, cont
     -------
     tables : tuple of length 2
         Astropy table containing modal tolerances and their associated contrasts.
-
     """
-
     mode = np.arange(0, len(Q_per_mode), 1)
     data = np.array([mode, Q_per_mode, c_per_mode]).T
     df1 = pd.DataFrame(data)

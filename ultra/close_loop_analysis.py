@@ -1,16 +1,9 @@
-"""
-This module contains algorithms used to compute lower bounds on delta-dark hole contrasts
-using a linear model of wavefront sensor architecture. The algorithms defined here apply to small wavefront pertubations, where
-a stable coronagraphic dark zone has already been created using independent high-order WFS&C algorithms.
-"""
-
 import numpy as np
 
 
 def req_closedloop_calc_recursive(Gcoro, Gsensor, E0coro, E0sensor, Dcoro, Dsensor,
                                   t_exp, flux, Q, Niter, dh_mask, norm):
-    """Calculates contrasts using Recursive batch estimation algorithm established in Pogorelyuk et al. 2021.
-
+    """
     Parameters
     ----------
     Gcoro : numpy ndarray
@@ -40,11 +33,9 @@ def req_closedloop_calc_recursive(Gcoro, Gsensor, E0coro, E0sensor, Dcoro, Dsens
         dark hole mask made up of 1 and 0
     norm : float
         peak value of the ideal direct psf in focal plane
-
     Returns
     -------
-    outputs : dict
-        dict of intensity_WFS_hist, cal_I_hist, eps_hist, averaged_hist, contrasts
+    dict of intensity_WFS_hist, cal_I_hist, eps_hist, averaged_hist, contrasts
     """
     # TODO: Rewrite Gcoro and Gsensor's definition to include lo and hi spatial frequency aberration
 
@@ -95,8 +86,7 @@ def req_closedloop_calc_recursive(Gcoro, Gsensor, E0coro, E0sensor, Dcoro, Dsens
 
 def req_closedloop_calc_batch(Gcoro, Gsensor, E0coro, E0sensor, Dcoro, Dsensor,
                               t_exp, flux, Q, Niter, dh_mask, norm):
-    """Calculates contrasts using simple batch estimation algorithm established in Pogorelyuk et al. 2021.
-
+    """
     Parameters
     ----------
     Gcoro : numpy ndarray
@@ -126,12 +116,11 @@ def req_closedloop_calc_batch(Gcoro, Gsensor, E0coro, E0sensor, Dcoro, Dsensor,
         dark hole mask made up of 1 and 0
     norm : float
         peak value of the ideal direct psf in focal plane
-
     Returns
     -------
-    outputs : dict
-        dict of intensity_WFS_hist, cal_I_hist, eps_hist, averaged_hist, contrasts
+    dict of intensity_WFS_hist, cal_I_hist, eps_hist, averaged_hist, contrasts
     """
+
     P = np.zeros(Q.shape)  # WFE modes covariance estimate
     r = Gsensor.shape[2]
     N = Gsensor.shape[0]

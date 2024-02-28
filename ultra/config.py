@@ -1,8 +1,6 @@
 """
-Adapted from PASTIS code. This code locates local config file, enables other scripts to import local config file
-rather than the original config file.
+Adapted from pastis code.
 """
-
 
 import configparser
 import os
@@ -32,4 +30,4 @@ def load_config_ini():
 
 
 # Import CONFIG_INI below instead of loading the ini file manually.
-CONFIG_ULTRA = load_config_ini()   # TODO: Test this module.
+CONFIG_ULTRA = load_config_ini()

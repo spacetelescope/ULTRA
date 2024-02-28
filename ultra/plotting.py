@@ -1,27 +1,18 @@
-"""
-This module contains various handy plotting functions used by launcher scripts, or notebooks.
-"""
-
-from matplotlib.colors import TwoSlopeNorm, LinearSegmentedColormap
-import matplotlib.pyplot as plt
+import hcipy
 import numpy as np
 import os
-
-import hcipy
+import matplotlib.pyplot as plt
+from matplotlib.colors import TwoSlopeNorm, LinearSegmentedColormap
 from pastis.util import sort_1d_mus_per_actuator
-
-from ultra.config import CONFIG_ULTRA
 
 
 def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_dir=None, fname=None):
     """Creates surface deformation maps (not WFE) for localized wavefront aberrations.
-
     The input mode coefficients 'mus' are in units of *WFE* and need to be grouped by segment, meaning the array holds
     the mode coefficients as:
         mode1 on seg1, mode2 on seg1, ..., mode'nmodes' on seg1, mode1 on seg2, mode2 on seg2 and so on.
-
-    Parameters
-    ----------
+    Parameters:
+    -----------
     tel : class instance of internal simulator
         the simulator to plot the surface maps for
     mus : 1d array
@@ -65,53 +56,15 @@ def plot_multimode_surface_maps(tel, mus, num_modes, mirror, cmin, cmax, data_di
         plt.tight_layout()
 
         if data_dir is not None:
-            os.makedirs(os.path.join(data_dir, 'mu_maps'), exist_ok=True)
-            image_name = fname + f'_mode_{i}.pdf'
-            plt.savefig(os.path.join(data_dir, 'mu_maps', image_name))
+            fname += f'_mode_{i}.png'
+            plt.savefig(os.path.join(data_dir, fname))
 
 
-def plot_iter_wf(variance_q, contrasts, contrast_floor, data_dir):
-    """Plots 'triangular' contrast curves for different wfs exposure time.
-
-    This function generates and saves contrast vs texp,
-    and calculates the optimal wfs time scale and delta wavefront error scale.
-
-    Parameters
-    ----------
-    variance_q : numpy 2d array
-        a square diagonal matrix, with static tolerances as diagonal elements.
-    contrasts : list
-        list of contrasts for different wfs exposure time.
-    contrast_floor : float
-        static coronagraphic contrast without any external aberration.
-    data_dir :  str
-        path to save the plot.
-
-    Returns
-    -------
-    contrast_minimum : float
-        minimum contrast corresponding to
-    t_wfs_optimal : float
-        optimal wavefront sensing time (in secs)
-    wavescale_optimal : int
-        optimal scaling factor to be later mulitplied to variance_q, fractional scale to give the total
-        wavefront error drift in pm/s.
-    """
-    wavescale_min = CONFIG_ULTRA.getint('close_loop', 'wavescale_min')
-    wavescale_max = CONFIG_ULTRA.getint('close_loop', 'wavescale_max')
-    wavescale_step = CONFIG_ULTRA.getint('close_loop', 'wavescale_step')
-    fractional_scale = CONFIG_ULTRA.getfloat('close_loop', 'fractional_scale')
-
-    TimeMinus = CONFIG_ULTRA.getfloat('close_loop', 'TimeMinus')
-    TimePlus = CONFIG_ULTRA.getfloat('close_loop', 'TimePlus')
-    Ntimes = CONFIG_ULTRA.getint('close_loop', 'Ntimes')
-
-    Vmag = CONFIG_ULTRA.getfloat('target', 'Vmag')
-    C_TARGET = CONFIG_ULTRA.getfloat('target', 'contrast')
-
+def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
+                 TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir):
     delta_wf = []
     for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
-        wf = np.sqrt(np.mean(np.diag(fractional_scale * wavescale ** 2 * variance_q))) * 1e3
+        wf = np.sqrt(np.mean(np.diag(0.0001 * wavescale ** 2 * Qharris))) * 1e3
         delta_wf.append(wf)
 
     wavescale_vec = range(wavescale_min, wavescale_max, wavescale_step)
@@ -119,25 +72,12 @@ def plot_iter_wf(variance_q, contrasts, contrast_floor, data_dir):
     texp = np.logspace(TimeMinus, TimePlus, Ntimes)
     font = {'family': 'serif', 'color': 'black', 'weight': 'normal', 'size': 20}
 
-    contrasts = np.asarray(contrasts)
+    result_wf_test = np.asarray(result_wf_test)
     plt.figure(figsize=(15, 10))
 
-    index_minima = []
-    contrasts_minima = []
-    t_minima = []
     for pp in range(0, len(wavescale_vec)):
-
-        contrasts_subarray = contrasts[pp * Ntimes:(pp + 1) * Ntimes] - contrast_floor
-        index_min = np.unravel_index(contrasts_subarray.argmin(), contrasts_subarray.shape)
-        contrast_min = contrasts_subarray[index_min]
-        t_min = texp[index_min]
-
-        contrasts_minima.append(contrast_min)
-        index_minima.append(index_min)
-        t_minima.append(t_min)
-
         plt.title('Target contrast = %s, Vmag= %s' % (C_TARGET, Vmag), fontdict=font)
-        plt.plot(texp, contrasts_subarray, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[pp]))
+        plt.plot(texp, result_wf_test[pp * Ntimes:(pp + 1) * Ntimes] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[pp]))
         plt.xlabel("$t_{WFS}$ in secs", fontsize=20)
         plt.ylabel(r"$ \Delta $ contrast", fontsize=20)
         plt.yscale('log')
@@ -147,52 +87,30 @@ def plot_iter_wf(variance_q, contrasts, contrast_floor, data_dir):
         plt.tick_params(axis='both', which='major', length=10, width=2)
         plt.tick_params(axis='both', which='minor', length=6, width=2)
         plt.grid()
-
-    delta_contrast_minima = abs((np.array(contrasts_minima) - C_TARGET))
-    index_minimum = (np.unravel_index(delta_contrast_minima.argmin(), delta_contrast_minima.shape))[0]
-    contrast_minimum = contrasts_minima[index_minimum]
-    t_wfs_optimal = t_minima[index_minimum]
-    wavescale_optimal = wavescale_vec[index_minimum]
 
     plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.png' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)))
 
-    return contrast_minimum, t_wfs_optimal, wavescale_optimal
 
 
-def plot_iter_mv(contrasts, contrast_floor, data_dir):
-    """Plots 'triangular' contrast curves for different wfs exposures, iterating over stellar magnitudes.
+def plot_iter_wf_log(Qharris, WaveScaleMinus, WaveScalePlus, Nwavescale,
+                 TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir):
+    delta_wf = []
 
-    Parameters
-    ----------
-    contrasts : list
-        list of contrasts for different wfs exposure time.
-    contrast_floor : float
-        static coronagraphic contrast without any external aberration.
-    data_dir : str
-        path to save the plot.
-    """
-    mv_min = CONFIG_ULTRA.getint('close_loop', 'mv_min')
-    mv_max = CONFIG_ULTRA.getint('close_loop', 'mv_max')
-    mv_step = CONFIG_ULTRA.getint('close_loop', 'mv_step')
+    wavescaleVec = np.logspace(WaveScaleMinus, WaveScalePlus, Nwavescale)
+    for wavescale in wavescaleVec:
+        wf = np.sqrt(np.mean(np.diag(wavescale ** 2 * Qharris))) * 1e3
+        delta_wf.append(wf)
 
-    TimeMinus = CONFIG_ULTRA.getfloat('close_loop', 'TimeMinus')
-    TimePlus = CONFIG_ULTRA.getfloat('close_loop', 'TimePlus')
-    Ntimes = CONFIG_ULTRA.getint('close_loop', 'Ntimes')
-
-    C_TARGET = CONFIG_ULTRA.getfloat('target', 'contrast')
-
-    mv_list = []
-    for mv in range(mv_min, mv_max, mv_step):
-        mv_list.append(mv)
 
     texp = np.logspace(TimeMinus, TimePlus, Ntimes)
-    contrasts = np.asarray(contrasts)
+    font = {'family': 'serif', 'color': 'black', 'weight': 'normal', 'size': 20}
+
+    result_wf_test = np.asarray(result_wf_test)
     plt.figure(figsize=(15, 10))
 
-    for pp in range(0, len(mv_list)):
-        font = {'family': 'serif', 'color': 'black', 'weight': 'normal', 'size': 20}
-        plt.title('Target contrast = %s' % (C_TARGET), fontdict=font)
-        plt.plot(texp, contrasts[pp * Ntimes:(pp + 1) * Ntimes] - contrast_floor, label=r'$ m_{v}= %d $' % (mv_list[pp]))
+    for pp in range(0, len(wavescaleVec)):
+        plt.title('Target contrast = %s, Vmag= %s' % (C_TARGET, Vmag), fontdict=font)
+        plt.plot(texp, result_wf_test[pp * Ntimes:(pp + 1) * Ntimes] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[pp]))
         plt.xlabel("$t_{WFS}$ in secs", fontsize=20)
         plt.ylabel(r"$ \Delta $ contrast", fontsize=20)
         plt.yscale('log')
@@ -203,25 +121,9 @@ def plot_iter_mv(contrasts, contrast_floor, data_dir):
         plt.tick_params(axis='both', which='minor', length=6, width=2)
         plt.grid()
 
-    plt.savefig(os.path.join(data_dir, 'contrast_iter_mv.png'))
-
+    plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.png' % (C_TARGET, WaveScaleMinus, WaveScalePlus, Nwavescale)))
 
 def plot_pastis_matrix(pastis_matrix, data_dir, vcenter, vmin, vmax):
-    """Plots PASTIS matrix.
-
-    Parameters
-    ----------
-    pastis_matrix : numpy 2d array
-        a square PASTIS matrix.
-    data_dir : str
-        path to save the plot
-    vcenter : float
-        TwoSlopeNorm's vcenter
-    vmin : float
-        TwoSlopeNorm's vmin
-    vmax : float
-        TwoSlopeNorm's vmax
-    """
     clist = [(0.1, 0.6, 1.0), (0.05, 0.05, 0.05), (0.8, 0.5, 0.1)]
     blue_orange_divergent = LinearSegmentedColormap.from_list("custom_blue_orange", clist)
 

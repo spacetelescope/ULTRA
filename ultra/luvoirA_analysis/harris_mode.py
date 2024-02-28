@@ -1,8 +1,3 @@
-"""
-This is the main launcher script to do a full wavefront error budget analysis for L3 Harris mode for
-LUVOIR A coronagraph designs.
-"""
-
 from astropy.io import fits
 import astropy.units as u
 import exoscene.star
@@ -28,7 +23,7 @@ if __name__ == '__main__':
     APLC_DESIGN = 'small'
 
     # Define target contrast
-    C_TARGET = CONFIG_ULTRA.getfloat('target', 'contrast')
+    C_TARGET = 1e-11
 
     # Parameters for Temporal Ananlysis
     sptype = CONFIG_ULTRA.get('target', 'sptype')
@@ -98,7 +93,7 @@ if __name__ == '__main__':
     npup = int(np.sqrt(tel.pupil_grid.x.shape[0]))
     star_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=Vmag,
                                                           minlam=minlam.value, maxlam=maxlam.value)
-    Nph = star_flux.value * tel.diam ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
+    Nph = star_flux.value * 15 ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
     flux = Nph
 
     # Set close loop parameters.

@@ -122,7 +122,7 @@ if __name__ == '__main__':
         result_wf_test = []
         # for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         for wavescale in wavescaleVec:
-            print('recurssive close loop batch estimation and wavescale %f' % wavescale)
+            print('Recursive close loop batch estimation and wavescale %f' % wavescale)
             niter = 10
             timer1 = time.time()
             StarMag = 0.0

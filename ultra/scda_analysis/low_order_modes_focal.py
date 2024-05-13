@@ -4,7 +4,6 @@ import exoscene.star
 import numpy as np
 import os
 import time
-import pandas as pd
 
 from pastis.config import CONFIG_PASTIS
 from pastis.matrix_generation.matrix_from_efields import MatrixEfieldHex
@@ -14,21 +13,35 @@ from pastis.util import dh_mean
 from ultra.config import CONFIG_ULTRA
 from ultra.util import calculate_sensitivity_matrices
 from ultra.close_loop_analysis import req_closedloop_calc_batch
-from ultra.close_loop_analysis import req_closedloop_calc_recursive
 from ultra.plotting import plot_iter_wf
+
 
 if __name__ == '__main__':
 
     # Set number of rings
     NUM_RINGS = 1
 
-    # Define the type of WFE.
-    WHICH_DM = 'zernike_mirror'
-
     # Define target contrast
     C_TARGET = 1e-11
 
-    # Parameters for Temporal Ananlysis
+    # Define the type of WFE.
+    WHICH_DM = 'zernike_mirror'
+
+    # DM_SPEC = tuple or int, specification for the used DM -
+    # for seg_mirror: int, number of local Zernike modes on each segment
+    # for harris_seg_mirror: tuple (string, array, bool, bool, bool),
+    # absolute path to Harris spreadsheet, pad orientations, choice of Harris mode sets (thermal, mechanical, other)
+    # for zernike_mirror: int, number of global Zernikes
+    DM_SPEC = 15
+    NUM_MODES = 15
+
+    if WHICH_DM == 'harris_seg_mirror':
+        fpath = CONFIG_PASTIS.get('LUVOIR', 'harris_data_path')  # path to Harris spreadsheet
+        pad_orientations = np.pi / 2 * np.ones(CONFIG_PASTIS.getint('LUVOIR', 'nb_subapertures'))
+        DM_SPEC = (fpath, pad_orientations, True, False, False)
+        NUM_MODES = 7
+
+    # Parameters for temporal analysis
     sptype = CONFIG_ULTRA.get('target', 'sptype')
     Vmag = CONFIG_ULTRA.getfloat('target', 'Vmag')
 
@@ -46,14 +59,6 @@ if __name__ == '__main__':
     Ntimes = CONFIG_ULTRA.getint('close_loop', 'Ntimes')
     Nwavescale = CONFIG_ULTRA.getfloat('close_loop', 'Nwavescale')
 
-    if WHICH_DM == 'harris_seg_mirror':
-        fpath = CONFIG_PASTIS.get('LUVOIR', 'harris_data_path')  # path to Harris spreadsheet
-        pad_orientations = np.pi / 2 * np.ones(CONFIG_PASTIS.getint('LUVOIR', 'nb_subapertures'))
-        DM_SPEC = (fpath, pad_orientations, True, False, False)
-        NUM_MODES = 7
-
-    DM_SPEC = 15
-    NUM_MODES = 15
     run_matrix = MatrixEfieldHex(which_dm=WHICH_DM, dm_spec=DM_SPEC, num_rings=NUM_RINGS,
                                  calc_science=True, calc_wfs=False, calc_lowfs=True,
                                  initial_path=CONFIG_PASTIS.get('local', 'local_data_path'), norm_one_photon=True)
@@ -62,8 +67,8 @@ if __name__ == '__main__':
     data_dir = run_matrix.overall_dir
     print(f'All saved to {data_dir}.')
 
+    # Retrieve the telescope simulator object
     tel = run_matrix.simulator
-
 
     unaber_psf = fits.getdata(os.path.join(data_dir, 'unaberrated_coro_psf.fits'))  # already normalized to max of direct psf
     dh_mask_shaped = tel.dh_mask.shaped
@@ -77,14 +82,14 @@ if __name__ == '__main__':
     # Get the efields at wfs and science plane.
     efield_science_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_coron_real.fits'))
     efield_science_imag = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_coron_imag.fits'))
-    efield_wfs_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_obwfs_real.fits'))
-    efield_wfs_imag = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_obwfs_imag.fits'))
+    efield_wfs_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_lowfs_real.fits'))
+    efield_wfs_imag = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_lowfs_imag.fits'))
     ref_coron = fits.getdata(os.path.join(data_dir, 'ref_e0_coron.fits'))
-    ref_obwfs = fits.getdata(os.path.join(data_dir, 'ref_e0_wfs.fits'))
+    ref_lowfs = fits.getdata(os.path.join(data_dir, 'ref_e0_wfs.fits'))
 
     print('Computing Sensitivity Matrices..')
     # Compute sensitivity matrices.
-    sensitivity_matrices = calculate_sensitivity_matrices(ref_coron, ref_obwfs, efield_science_real,
+    sensitivity_matrices = calculate_sensitivity_matrices(ref_coron, ref_lowfs, efield_science_real,
                                                           efield_science_imag,
                                                           efield_wfs_real, efield_wfs_imag, subsample_factor=8)
     g_coron = sensitivity_matrices['sensitivity_image_plane']
@@ -92,10 +97,10 @@ if __name__ == '__main__':
     e0_coron = sensitivity_matrices['ref_image_plane']
     e0_wfs = sensitivity_matrices['ref_wfs_plane']
 
-    # Compute Temporal tolerances.
+    # Compute temporal tolerances.
     print('Computing close loop contrast estimation..')
 
-    # Compute Star flux.
+    # Compute stellar flux.
     npup = int(np.sqrt(tel.pupil_grid.x.shape[0]))
     star_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=Vmag,
                                                           minlam=minlam.value, maxlam=maxlam.value)
@@ -112,7 +117,7 @@ if __name__ == '__main__':
     wavescale_step = 10
     result_wf_test = []
     for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
-        print('recurssive close loop batch estimation and wavescale %f' % wavescale)
+        print('Recursive, closed-loop, batch estimation and wavescale %f' % wavescale)
         niter = 10
         timer1 = time.time()
         StarMag = 0.0
@@ -128,7 +133,6 @@ if __name__ == '__main__':
                                              detector_noise, tscale, flux * Starfactor,
                                              0.0001 * wavescale ** 2 * Qharris,
                                              niter, tel.dh_mask, norm)
-
 
             tmp1 = tmp0['averaged_hist']
             n_tmp1 = len(tmp1)

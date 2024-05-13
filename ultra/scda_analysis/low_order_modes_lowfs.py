@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from pastis.config import CONFIG_PASTIS
-from pastis.matrix_generation.matrix_from_efields import MatrixEfieldHex_lowfs
+from pastis.matrix_generation.matrix_from_efields import MatrixEfieldHex
 from pastis.pastis_analysis import calculate_segment_constraints
 from pastis.util import dh_mean
 
@@ -56,8 +56,8 @@ if __name__ == '__main__':
 
     DM_SPEC = 15
     NUM_MODES = 15
-    run_matrix = MatrixEfieldHex_lowfs(which_dm=WHICH_DM, dm_spec=DM_SPEC, num_rings=NUM_RINGS,
-                                 calc_science=True, calc_wfs=True,
+    run_matrix = MatrixEfieldHex(which_dm=WHICH_DM, dm_spec=DM_SPEC, num_rings=NUM_RINGS,
+                                 calc_science=True, calc_wfs=False, calc_lowfs=True,
                                  initial_path=CONFIG_PASTIS.get('local', 'local_data_path'), norm_one_photon=True)
 
     run_matrix.calc()

@@ -57,7 +57,7 @@ if __name__ == '__main__':
     DM_SPEC = 15
     NUM_MODES = 15
     run_matrix = MatrixEfieldHex(which_dm=WHICH_DM, dm_spec=DM_SPEC, num_rings=NUM_RINGS,
-                                 calc_science=True, calc_wfs=True,
+                                 calc_science=True, calc_wfs=True, calc_lowfs=False,
                                  initial_path=CONFIG_PASTIS.get('local', 'local_data_path'), norm_one_photon=True)
 
     run_matrix.calc()

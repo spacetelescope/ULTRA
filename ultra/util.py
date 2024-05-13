@@ -71,8 +71,8 @@ def calculate_sensitivity_matrices(e0_coron, e0_wfs, efield_coron_real, efield_c
 
     matrix = {"ref_image_plane": ref_coron,
               "ref_wfs_plane": ref_wfs_downsampled,
-              "senitivity_image_plane": g_coron,
-              "sensitvity_wfs_plane": g_wfs_downsampled}
+              "sensitivity_image_plane": g_coron,
+              "sensitivity_wfs_plane": g_wfs_downsampled}
 
     return matrix
 

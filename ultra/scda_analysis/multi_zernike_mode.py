@@ -86,8 +86,8 @@ if __name__ == '__main__':
     sensitivity_matrices = calculate_sensitivity_matrices(ref_coron, ref_obwfs, efield_science_real,
                                                           efield_science_imag,
                                                           efield_wfs_real, efield_wfs_imag, subsample_factor=8)
-    g_coron = sensitivity_matrices['senitivity_image_plane']
-    g_wfs = sensitivity_matrices['sensitvity_wfs_plane']
+    g_coron = sensitivity_matrices['sensitivity_image_plane']
+    g_wfs = sensitivity_matrices['sensitivity_wfs_plane']
     e0_coron = sensitivity_matrices['ref_image_plane']
     e0_wfs = sensitivity_matrices['ref_wfs_plane']
 

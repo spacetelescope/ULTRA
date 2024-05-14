@@ -87,8 +87,8 @@ if __name__ == '__main__':
     ref_coron = fits.getdata(os.path.join(data_dir, 'ref_e0_coron.fits'))
     ref_lowfs = fits.getdata(os.path.join(data_dir, 'ref_e0_wfs.fits'))
 
-    print('Computing Sensitivity Matrices..')
     # Compute sensitivity matrices.
+    print('Computing Sensitivity Matrices..')
     sensitivity_matrices = calculate_sensitivity_matrices(ref_coron, ref_lowfs, efield_science_real,
                                                           efield_science_imag,
                                                           efield_wfs_real, efield_wfs_imag, subsample_factor=8)
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     e0_wfs = sensitivity_matrices['ref_wfs_plane']
 
     # Compute temporal tolerances.
-    print('Computing close loop contrast estimation..')
+    print('Computing closed-loop contrast estimation..')
 
     # Compute stellar flux.
     npup = int(np.sqrt(tel.pupil_grid.x.shape[0]))

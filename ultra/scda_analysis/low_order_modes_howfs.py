@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
     # Calculate static tolerances.
     pastis_matrix = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'pastis_matrix.fits'))
-    mus = calculate_segment_constraints(pastis_matrix[1:15,1:15], c_target=C_TARGET, coronagraph_floor=0)
+    mus = calculate_segment_constraints(pastis_matrix[1:15, 1:15], c_target=C_TARGET, coronagraph_floor=0)
     np.savetxt(os.path.join(data_dir, 'mus_Hex_%d_%s.csv' % (NUM_RINGS, C_TARGET)), mus, delimiter=',')
 
     # Get the efields at wfs and science plane.
@@ -88,8 +88,8 @@ if __name__ == '__main__':
     ref_coron = fits.getdata(os.path.join(data_dir, 'ref_e0_coron.fits'))
     ref_lowfs = fits.getdata(os.path.join(data_dir, 'ref_e0_wfs.fits'))
 
-    print('Computing Sensitivity Matrices..')
     # Compute sensitivity matrices.
+    print('Computing Sensitivity Matrices..')
     sensitivity_matrices = calculate_sensitivity_matrices(ref_coron, ref_lowfs, efield_science_real,
                                                           efield_science_imag,
                                                           efield_wfs_real, efield_wfs_imag, subsample_factor=8)
@@ -99,14 +99,14 @@ if __name__ == '__main__':
     e0_wfs = sensitivity_matrices['ref_wfs_plane']
 
     # Compute temporal tolerances.
-    print('Computing close loop contrast estimation..')
+    print('Computing closed-loop contrast estimation..')
 
     # Compute stellar flux.
     npup = int(np.sqrt(tel.pupil_grid.x.shape[0]))
     star_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=Vmag,
                                                           minlam=minlam.value, maxlam=maxlam.value)
     Nph = star_flux.value * tel.diam ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
-    flux = Nph/100
+    flux = Nph / 100
 
     Qharris = np.diag(np.asarray(mus**2))
 
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     result_wf_test = []
     # for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
     for wavescale in wavescaleVec:
-        print('Recursive close loop batch estimation and wavescale %f' % wavescale)
+        print('Recursive, closed-loop, batch estimation and wavescale %f' % wavescale)
         niter = 100
         timer1 = time.time()
         StarMag = 0.0
@@ -178,7 +178,7 @@ if __name__ == '__main__':
             denominator_sum = np.sum(wavescale**2 * np.diagonal(Qharris) * eigen_coron)
             t_min = 1 / np.sqrt(2 * flux) * np.sqrt(numerator / denominator_sum)
             delta_C_batch = 2 * np.sqrt(2 / flux) * np.sqrt(numerator * denominator_sum) * norm
-            delta_C_rec = np.sqrt(2 / flux) * np.sum(wavescale*np.sqrt(np.diagonal(Qharris)) * eigen_coron/np.sqrt(eigen_wfs)) * norm
+            delta_C_rec = np.sqrt(2 / flux) * np.sum(wavescale * np.sqrt(np.diagonal(Qharris)) * eigen_coron / np.sqrt(eigen_wfs)) * norm
 
             print(t_min)
             print(delta_C_batch)

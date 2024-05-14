@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
     # Calculate static tolerances.
     pastis_matrix = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'pastis_matrix.fits'))
-    mus = calculate_segment_constraints(pastis_matrix[1:15,1:15], c_target=C_TARGET, coronagraph_floor=0)
+    mus = calculate_segment_constraints(pastis_matrix[1:15, 1:15], c_target=C_TARGET, coronagraph_floor=0)
     np.savetxt(os.path.join(data_dir, 'mus_Hex_%d_%s.csv' % (NUM_RINGS, C_TARGET)), mus, delimiter=',')
 
     # Get the efields at wfs and science plane.
@@ -99,12 +99,12 @@ if __name__ == '__main__':
     e0_wfs = sensitivity_matrices['ref_wfs_plane']
 
     # Compute temporal tolerances.
-    print('Computing close loop contrast estimation..')
+    print('Computing closed-loop contrast estimation..')
 
     for Vmag in range(0, 11, 2):
         print(Vmag)
 
-        # Compute Star flux.
+        # Compute stellar flux.
         npup = int(np.sqrt(tel.pupil_grid.x.shape[0]))
         star_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=Vmag,
                                                               minlam=minlam.value, maxlam=maxlam.value)
@@ -126,19 +126,19 @@ if __name__ == '__main__':
         result_wf_test = []
         # for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         for wavescale in wavescaleVec:
-            print('Recursive close loop batch estimation and wavescale %f' % wavescale)
+            print('Recursive, closed-loop, batch estimation and wavescale %f' % wavescale)
             niter = 10
             timer1 = time.time()
             StarMag = 0.0
             for tscale in np.logspace(TimeMinus, TimePlus, Ntimes):
                 Starfactor = 10 ** (-StarMag / 2.5)
                 print(tscale)
-                #with Lowfs
+                # with Lowfs
                 tmp0 = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise,
                                                  detector_noise, tscale, flux * Starfactor,
                                                  wavescale ** 2 * Qharris,
                                                  niter, tel.dh_mask, norm)
-                # # #With DH
+                # # With DH
                 # tmp0 = req_closedloop_calc_batch(g_coron, g_coron, e0_coron, e0_coron, detector_noise,
                 #                                  detector_noise, tscale, flux * Starfactor,
                 #                                  wavescale ** 2 * Qharris,

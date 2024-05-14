@@ -99,7 +99,7 @@ if __name__ == '__main__':
     e0_wfs = sensitivity_matrices['ref_wfs_plane']
 
     # Compute temporal tolerances.
-    print('Computing close loop contrast estimation..')
+    print('Computing closed-loop contrast estimation..')
 
     for Vmag in range(0, 11, 2):
         print(Vmag)
@@ -138,7 +138,7 @@ if __name__ == '__main__':
                                                  detector_noise, tscale, flux * Starfactor,
                                                  wavescale ** 2 * Qharris,
                                                  niter, tel.dh_mask, norm)
-                # # #With DH
+                # # With DH
                 # tmp0 = req_closedloop_calc_batch(g_coron, g_coron, e0_coron, e0_coron, detector_noise,
                 #                                  detector_noise, tscale, flux * Starfactor,
                 #                                  wavescale ** 2 * Qharris,
@@ -171,7 +171,7 @@ if __name__ == '__main__':
                 # mat_coron = np.dot(np.transpose(g_coron_flat), g_coron_flat) / np.sum(tel.dh_mask)
                 mat_coron = np.dot(np.transpose(g_coron_flat), g_coron_flat)
                 # mat_wfs  = np.dot(np.transpose(g_wfs_flat), g_wfs_flat) / np.sum(aperture_mask)
-                mat_wfs  = np.dot(np.transpose(g_wfs_flat), g_wfs_flat)
+                mat_wfs = np.dot(np.transpose(g_wfs_flat), g_wfs_flat)
                 (eval, evec) = np.linalg.eig(mat_coron)
                 eigen_coron = np.diagonal(mat_coron)
                 (eval, evec) = np.linalg.eig(mat_wfs)

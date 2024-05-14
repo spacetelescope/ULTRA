@@ -99,7 +99,7 @@ if __name__ == '__main__':
     e0_wfs = sensitivity_matrices['ref_wfs_plane']
 
     # Compute temporal tolerances.
-    print('Computing close loop contrast estimation..')
+    print('Computing closed-loop contrast estimation..')
 
     # Compute stellar flux.
     npup = int(np.sqrt(tel.pupil_grid.x.shape[0]))
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     result_wf_test = []
     # for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
     for wavescale in wavescaleVec:
-        print('Recursive close loop batch estimation and wavescale %f' % wavescale)
+        print('Recursive, closed-loop, batch estimation and wavescale %f' % wavescale)
         niter = 100
         timer1 = time.time()
         StarMag = 0.0
@@ -156,8 +156,8 @@ if __name__ == '__main__':
             subsample_factor = 8
             Npup = int(np.sqrt(tel.aperture.shape[0]))
             aperture_square_array = np.reshape(tel.aperture, [Npup, Npup])
-            n_sub_pix = int(Npup/ subsample_factor)
-            aperture_square_array_small = matrix_subsample(aperture_square_array, n_sub_pix, n_sub_pix)/subsample_factor**2
+            n_sub_pix = int(Npup / subsample_factor)
+            aperture_square_array_small = matrix_subsample(aperture_square_array, n_sub_pix, n_sub_pix) / subsample_factor**2
             aperture_small = np.reshape(aperture_square_array_small, n_sub_pix ** 2)
             aperture_mask = aperture_small == 1
 
@@ -169,7 +169,7 @@ if __name__ == '__main__':
             # mat_coron = np.dot(np.transpose(g_coron_flat), g_coron_flat) / np.sum(tel.dh_mask)
             mat_coron = np.dot(np.transpose(g_coron_flat), g_coron_flat)
             # mat_wfs  = np.dot(np.transpose(g_wfs_flat), g_wfs_flat) / np.sum(aperture_mask)
-            mat_wfs  = np.dot(np.transpose(g_wfs_flat), g_wfs_flat)
+            mat_wfs = np.dot(np.transpose(g_wfs_flat), g_wfs_flat)
             (eval, evec) = np.linalg.eig(mat_coron)
             eigen_coron = np.diagonal(mat_coron)
             (eval, evec) = np.linalg.eig(mat_wfs)

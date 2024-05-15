@@ -3,7 +3,6 @@ import astropy.units as u
 import exoscene.star
 import numpy as np
 import os
-import time
 
 from pastis.config import CONFIG_PASTIS
 from pastis.matrix_generation.matrix_from_efields import MatrixEfieldHex
@@ -12,7 +11,7 @@ from pastis.util import dh_mean
 
 from ultra.config import CONFIG_ULTRA
 from ultra.util import calculate_sensitivity_matrices
-from ultra.close_loop_analysis import req_closedloop_calc_batch
+from ultra.close_loop_analysis import req_closedloop_calc_batch, req_closedloop_calc_recursive
 from ultra.plotting import plot_iter_wf
 
 
@@ -20,6 +19,18 @@ if __name__ == '__main__':
 
     # Set number of rings
     NUM_RINGS = 1
+
+    # Define which WFS to calculate, "obwfs" or "lowfs".
+    # The science plane is always calculated.
+    WFS = 'lowfs'
+
+    # Plane to run algorithm on, "coronagraph" or "wfs"
+    PLANE = "coronagraph"
+
+    # Algorithm to use, "batch" or "recursive"
+    ALGORITHM = "batch"
+    algo_function = req_closedloop_calc_batch if ALGORITHM == "batch" else req_closedloop_calc_recursive
+    niter = 10 if ALGORITHM == "batch" else 100
 
     # Define target contrast
     C_TARGET = 1e-11
@@ -46,20 +57,19 @@ if __name__ == '__main__':
     minlam = CONFIG_ULTRA.getfloat('target', 'minlam') * u.nanometer
     maxlam = CONFIG_ULTRA.getfloat('target', 'maxlam') * u.nanometer
 
-    dark_current = CONFIG_ULTRA.getfloat('detector', 'dark_current')
-    CIC = CONFIG_ULTRA.getfloat('detector', 'dark_current')
-
     # Set close loop parameters.
     detector_noise = CONFIG_ULTRA.getfloat('detector', 'detector_noise')
-    niter = CONFIG_ULTRA.getint('close_loop', 'niter')
     TimeMinus = CONFIG_ULTRA.getfloat('close_loop', 'TimeMinus')
     TimePlus = CONFIG_ULTRA.getfloat('close_loop', 'TimePlus')
     Ntimes = CONFIG_ULTRA.getint('close_loop', 'Ntimes')
-    Nwavescale = CONFIG_ULTRA.getfloat('close_loop', 'Nwavescale')
+
+    # Calculate the E-fields in the science and WFS planes.
+    calc_wfs = False if WFS == 'lowfs' else True
+    calc_lowfs = True if WFS == 'lowfs' else False
 
     # Calculate the PASTIS matrix
     run_matrix = MatrixEfieldHex(which_dm=WHICH_DM, dm_spec=DM_SPEC, num_rings=NUM_RINGS,
-                                 calc_science=True, calc_wfs=True, calc_lowfs=False,
+                                 calc_science=True, calc_wfs=calc_wfs, calc_lowfs=calc_lowfs,
                                  initial_path=CONFIG_PASTIS.get('local', 'local_data_path'), norm_one_photon=True)
     run_matrix.calc()
     data_dir = run_matrix.overall_dir
@@ -68,27 +78,28 @@ if __name__ == '__main__':
     # Retrieve the telescope simulator object
     tel = run_matrix.simulator
 
-    unaber_psf = fits.getdata(os.path.join(data_dir, 'unaberrated_coro_psf.fits'))  # already normalized to max of direct psf
-    dh_mask_shaped = tel.dh_mask.shaped
-    contrast_floor = dh_mean(unaber_psf, dh_mask_shaped)
+    # Calculate the unaberrated coronagraphic PSF for normalization, and contrast floor.
+    unaberrated_coro_psf, ref = tel.calc_psf(ref=True, display_intermediate=False, norm_one_photon=True)
+    norm = np.max(ref)
+    contrast_floor = dh_mean(unaberrated_coro_psf.shaped / norm, tel.dh_mask.shaped)
 
     # Calculate static tolerances.
     pastis_matrix = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'pastis_matrix.fits'))
     mus = calculate_segment_constraints(pastis_matrix, c_target=C_TARGET, coronagraph_floor=0)
     np.savetxt(os.path.join(data_dir, 'mus_Hex_%d_%s.csv' % (NUM_RINGS, C_TARGET)), mus, delimiter=',')
+    Qharris = np.diag(np.asarray(mus**2))
 
     # Get the efields at wfs and science plane.
     efield_science_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_coron_real.fits'))
     efield_science_imag = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_coron_imag.fits'))
-    efield_wfs_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_obwfs_real.fits'))
-    efield_wfs_imag = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_obwfs_imag.fits'))
+    efield_wfs_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', f'efield_{WFS}_real.fits'))
+    efield_wfs_imag = fits.getdata(os.path.join(data_dir, 'matrix_numerical', f'efield_{WFS}_imag.fits'))
     ref_coron = fits.getdata(os.path.join(data_dir, 'ref_e0_coron.fits'))
-    ref_wfs = fits.getdata(os.path.join(data_dir, 'ref_e0_obwfs.fits'))
+    ref_wfs = fits.getdata(os.path.join(data_dir, f'ref_e0_{WFS}.fits'))
 
     # Compute sensitivity matrices.
     print('Computing Sensitivity Matrices..')
-    sensitivity_matrices = calculate_sensitivity_matrices(ref_coron, ref_wfs, efield_science_real,
-                                                          efield_science_imag,
+    sensitivity_matrices = calculate_sensitivity_matrices(ref_coron, ref_wfs, efield_science_real, efield_science_imag,
                                                           efield_wfs_real, efield_wfs_imag, subsample_factor=8)
     g_coron = sensitivity_matrices['sensitivity_image_plane']
     g_wfs = sensitivity_matrices['sensitivity_wfs_plane']
@@ -99,39 +110,27 @@ if __name__ == '__main__':
     print('Computing close loop contrast estimation..')
 
     # Compute stellar flux.
-    npup = int(np.sqrt(tel.pupil_grid.x.shape[0]))
+    Npup = int(np.sqrt(tel.aperture.shape[0]))
     star_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=Vmag,
                                                           minlam=minlam.value, maxlam=maxlam.value)
-    Nph = star_flux.value * 15 ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
-    flux = Nph
+    flux = star_flux.value * 15 ** 2 * np.sum(tel.apodizer ** 2) / Npup ** 2
 
-    Qharris = np.diag(np.asarray(mus**2))
-
-    unaberrated_coro_psf, ref = tel.calc_psf(ref=True, display_intermediate=False, norm_one_photon=True)
-    norm = np.max(ref)
+    # Detector plane to iterate over
+    e0_iter = e0_coron if PLANE == "coronagraph" else e0_wfs
+    g_iter = g_coron if PLANE == "coronagraph" else g_wfs
 
     wavescale_min = 20    # TODO: plot works only for 7 wavescale values, choose the stepsize accordingly.
     wavescale_max = 200
     wavescale_step = 10
     result_wf_test = []
     for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
-        print('Recursive, closed-loop, batch estimation and wavescale %f' % wavescale)
-        niter = 1000
-        timer1 = time.time()
+        print(f'Closed-loop estimation using {ALGORITHM} algorithm and wavescale {wavescale}')
         StarMag = 0.0
         for tscale in np.logspace(TimeMinus, TimePlus, Ntimes):
             Starfactor = 10 ** (-StarMag / 2.5)
-            print(tscale)
-            # tmp0 = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise,
-            #                                  detector_noise, tscale, flux * Starfactor,
-            #                                  0.0001 * wavescale ** 2 * Qharris,
-            #                                  niter, tel.dh_mask, norm)
-
-            tmp0 = req_closedloop_calc_batch(g_coron, g_coron, e0_coron, e0_coron, detector_noise,
-                                             detector_noise, tscale, flux * Starfactor,
-                                             0.0001 * wavescale ** 2 * Qharris,
-                                             niter, tel.dh_mask, norm)
-
+            print(f"tscale: {tscale}")
+            tmp0 = algo_function(g_coron, g_iter, e0_coron, e0_iter, detector_noise, detector_noise, tscale,
+                                 flux * Starfactor, 0.0001 * wavescale ** 2 * Qharris, niter, tel.dh_mask, norm)
 
             tmp1 = tmp0['averaged_hist']
             n_tmp1 = len(tmp1)

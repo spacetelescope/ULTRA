@@ -110,7 +110,7 @@ if __name__ == '__main__':
     e0_wfs = sensitivity_matrices['ref_wfs_plane']
 
     # Compute Temporal tolerances.
-    print('Computing close loop contrast estimation..')
+    print('Computing closed-loop contrast estimation..')
 
     # Compute Star flux.
     Npup = int(np.sqrt(tel.aperture.shape[0]))

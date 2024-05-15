@@ -101,8 +101,7 @@ if __name__ == '__main__':
 
     # Compute sensitivity matrices.
     print('Computing Sensitivity Matrices..')
-    sensitivity_matrices = calculate_sensitivity_matrices(ref_coron, ref_wfs, efield_science_real,
-                                                          efield_science_imag,
+    sensitivity_matrices = calculate_sensitivity_matrices(ref_coron, ref_wfs, efield_science_real, efield_science_imag,
                                                           efield_wfs_real, efield_wfs_imag, subsample_factor=8)
     g_coron = sensitivity_matrices['sensitivity_image_plane']
     g_wfs = sensitivity_matrices['sensitivity_wfs_plane']
@@ -171,10 +170,8 @@ if __name__ == '__main__':
                 Starfactor = 10 ** (-StarMag / 2.5)
                 print(f"tscale: {tscale}")
 
-                tmp0 = algo_function(g_coron, g_iter, e0_coron, e0_iter, detector_noise,
-                                                 detector_noise, tscale, flux * Starfactor,
-                                                 wavescale ** 2 * Qharris,
-                                                 niter, tel.dh_mask, norm)
+                tmp0 = algo_function(g_coron, g_iter, e0_coron, e0_iter, detector_noise, detector_noise, tscale,
+                                     flux * Starfactor, wavescale ** 2 * Qharris, niter, tel.dh_mask, norm)
 
                 tmp1 = tmp0['averaged_hist']
                 n_tmp1 = len(tmp1)

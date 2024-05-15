@@ -54,7 +54,7 @@ if __name__ == '__main__':
             pad_orientations = np.pi / 2 * np.ones(CONFIG_PASTIS.getint('LUVOIR', 'nb_subapertures'))
             DM_SPEC = (fpath, pad_orientations, True, False, False)
 
-        # Parameters for temporal tnanlysis
+        # Parameters for temporal analysis
         sptype = CONFIG_ULTRA.get('target', 'sptype')
 
         minlam = CONFIG_ULTRA.getfloat('target', 'minlam') * u.nanometer
@@ -154,3 +154,5 @@ if __name__ == '__main__':
             plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step, TimeMinus, TimePlus, Ntimes,
                          result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir)
 
+            end_time = time.time()
+            print(f"Time taken: {end_time - start_time} seconds")

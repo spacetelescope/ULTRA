@@ -88,7 +88,7 @@ def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
         plt.tick_params(axis='both', which='minor', length=6, width=2)
         plt.grid()
 
-    plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.png' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)))
+    plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d_Vmag%d.png' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step, Vmag)))
 
 
 def plot_iter_wf_log(Qharris, WaveScaleMinus, WaveScalePlus, Nwavescale, TimeMinus, TimePlus, Ntimes, result_wf_test,

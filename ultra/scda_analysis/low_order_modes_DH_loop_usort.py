@@ -41,7 +41,7 @@ if __name__ == '__main__':
         DM_SPEC = (fpath, pad_orientations, True, False, False)
         NUM_MODES = 7
 
-    # Parameters for Temporal Ananlysis
+    # Parameters for temporal analysis
     sptype = CONFIG_ULTRA.get('target', 'sptype')
     Vmag = CONFIG_ULTRA.getfloat('target', 'Vmag')
 
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     e0_coron = sensitivity_matrices['ref_image_plane']
     e0_wfs = sensitivity_matrices['ref_wfs_plane']
 
-    # Compute Temporal tolerances.
+    # Compute temporal tolerances.
     print('Computing closed-loop contrast estimation..')
 
     for Vmag in range(0, 11, 2):

@@ -70,6 +70,7 @@ if __name__ == '__main__':
     Ntimes = CONFIG_ULTRA.getint('close_loop', 'Ntimes')
     Nwavescale = CONFIG_ULTRA.getfloat('close_loop', 'Nwavescale')
 
+    # Calculate the E-fields in the science and WFS planes.
     calc_wfs = False if WFS == 'lowfs' else True
     calc_lowfs = True if WFS == 'lowfs' else False
 
@@ -84,14 +85,16 @@ if __name__ == '__main__':
     # Retrieve the telescope simulator object
     tel = run_matrix.simulator
 
-    unaber_psf = fits.getdata(os.path.join(data_dir, 'unaberrated_coro_psf.fits'))  # already normalized to max of direct psf
-    dh_mask_shaped = tel.dh_mask.shaped
-    contrast_floor = dh_mean(unaber_psf, dh_mask_shaped)
+    # Calculate the unaberrated coronagraphic PSF for normalization, and contrast floor.
+    unaberrated_coro_psf, ref = tel.calc_psf(ref=True, display_intermediate=False, norm_one_photon=True)
+    norm = np.max(ref)
+    contrast_floor = dh_mean(unaberrated_coro_psf / norm, tel.dh_mask.shaped)
 
     # Calculate static tolerances.
     pastis_matrix = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'pastis_matrix.fits'))
     mus = calculate_segment_constraints(pastis_matrix[1:NUM_MODES, 1:NUM_MODES], c_target=C_TARGET, coronagraph_floor=0)
     np.savetxt(os.path.join(data_dir, 'mus_Hex_%d_%s.csv' % (NUM_RINGS, C_TARGET)), mus, delimiter=',')
+    Qharris = np.diag(np.asarray(mus ** 2))
 
     # Get the efields at wfs and science plane.
     efield_science_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_coron_real.fits'))[1:NUM_MODES]
@@ -114,32 +117,28 @@ if __name__ == '__main__':
     # Compute temporal tolerances.
     print('Computing closed-loop contrast estimation..')
 
+    Npup = int(np.sqrt(tel.aperture.shape[0]))
+
     # Detector plane to iterate over
     e0_iter = e0_coron if PLANE == "coronagraph" else e0_wfs
     g_iter = g_coron if PLANE == "coronagraph" else g_wfs
 
+    # wavescale_min = 2    # TODO: plot works only for 7 wavescale values, chose the stepsize accordingly.
+    # wavescale_max = 200
+    # wavescale_step = 40
+    Nwavescale = 5
+    WaveScaleMinus = -1
+    WaveScalePlus = 0
+    wavescaleVec = np.logspace(WaveScaleMinus, WaveScalePlus, Nwavescale)
+
     for Vmag in range(0, 11, 2):
-        print(Vmag)
+        print(f"Vmag: {Vmag}")
 
         # Compute stellar flux.
-        npup = int(np.sqrt(tel.pupil_grid.x.shape[0]))
         star_flux = exoscene.star.bpgs_spectype_to_photonrate(spectype=sptype, Vmag=Vmag,
                                                               minlam=minlam.value, maxlam=maxlam.value)
-        Nph = star_flux.value * tel.diam ** 2 * np.sum(tel.apodizer ** 2) / npup ** 2
-        flux = Nph
+        flux = star_flux.value * tel.diam ** 2 * np.sum(tel.apodizer ** 2) / Npup ** 2
 
-        Qharris = np.diag(np.asarray(mus**2))
-
-        unaberrated_coro_psf, ref = tel.calc_psf(ref=True, display_intermediate=False, norm_one_photon=True)
-        norm = np.max(ref)
-
-        # wavescale_min = 2    # TODO: plot works only for 7 wavescale values, chose the stepsize accordingly.
-        # wavescale_max = 200
-        # wavescale_step = 40
-        Nwavescale = 5
-        WaveScaleMinus = -1
-        WaveScalePlus = 0
-        wavescaleVec = np.logspace(WaveScaleMinus, WaveScalePlus, Nwavescale)
         result_wf_test = []
         # for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         for wavescale in wavescaleVec:
@@ -167,7 +166,6 @@ if __name__ == '__main__':
 
                 # For wfs
                 subsample_factor = 8
-                Npup = int(np.sqrt(tel.aperture.shape[0]))
                 aperture_square_array = np.reshape(tel.aperture, [Npup, Npup])
                 n_sub_pix = int(Npup / subsample_factor)
                 aperture_square_array_small = matrix_subsample(aperture_square_array, n_sub_pix, n_sub_pix) / subsample_factor**2
@@ -179,26 +177,25 @@ if __name__ == '__main__':
                 imag_wfs = aperture_mask_per_act * g_wfs[:, 1, :]
                 g_wfs_flat = np.concatenate((real_wfs, imag_wfs), axis=0)
 
-                # mat_coron = np.dot(np.transpose(g_coron_flat), g_coron_flat) / np.sum(tel.dh_mask)
-                mat_coron = np.dot(np.transpose(g_coron_flat), g_coron_flat)
-                # mat_wfs  = np.dot(np.transpose(g_wfs_flat), g_wfs_flat) / np.sum(aperture_mask)
-                mat_wfs = np.dot(np.transpose(g_wfs_flat), g_wfs_flat)
-                (eval, evec) = np.linalg.eig(mat_coron)
+                # Some matrix reshuffling
+                mat_coron = np.dot(np.transpose(g_coron_flat), g_coron_flat)  # / np.sum(tel.dh_mask)
+                mat_wfs = np.dot(np.transpose(g_wfs_flat), g_wfs_flat)  # / np.sum(aperture_mask)
                 eigen_coron = np.diagonal(mat_coron)
-                (eval, evec) = np.linalg.eig(mat_wfs)
                 eigen_wfs = np.diagonal(mat_wfs)
                 numerator = np.sum(eigen_coron / eigen_wfs)
+
+                # Calculate algorithm parameters
                 denominator_sum = np.sum(wavescale**2 * np.diagonal(Qharris) * eigen_coron)
                 t_min = 1 / np.sqrt(2 * flux) * np.sqrt(numerator / denominator_sum)
                 delta_C_batch = 2 * np.sqrt(2 / flux) * np.sqrt(numerator * denominator_sum) * norm
                 delta_C_rec = np.sqrt(2 / flux) * np.sum(wavescale * np.sqrt(np.diagonal(Qharris)) * eigen_coron / np.sqrt(eigen_wfs)) * norm
 
-                print(t_min)
-                print(delta_C_batch)
-                print(delta_C_rec)
+                print(f"t_min: {t_min}")
+                print(f"delta_C_batch: {delta_C_batch}")
+                print(f"delta_C_rec: {delta_C_rec}")
 
         np.savetxt(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d_%d.csv' % (C_TARGET, WaveScaleMinus, WaveScalePlus, Nwavescale, Vmag)),
                    result_wf_test, delimiter=',')
 
-        plot_iter_wf_log(Qharris, WaveScaleMinus, WaveScalePlus, Nwavescale,
-                     TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir)
+        plot_iter_wf_log(Qharris, WaveScaleMinus, WaveScalePlus, Nwavescale, TimeMinus, TimePlus, Ntimes,
+                         result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir)

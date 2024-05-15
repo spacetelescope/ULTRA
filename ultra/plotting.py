@@ -91,7 +91,6 @@ def plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
     plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.png' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)))
 
 
-
 def plot_iter_wf_log(Qharris, WaveScaleMinus, WaveScalePlus, Nwavescale,
                  TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir):
     delta_wf = []
@@ -109,7 +108,7 @@ def plot_iter_wf_log(Qharris, WaveScaleMinus, WaveScalePlus, Nwavescale,
     plt.figure(figsize=(15, 10))
 
     for pp in range(0, len(wavescaleVec)):
-        plt.title('Target contrast = %s, Vmag= %s' % (C_TARGET, Vmag), fontdict=font)
+        plt.title('Target contrast = %s, Vmag = %s' % (C_TARGET, Vmag), fontdict=font)
         plt.plot(texp, result_wf_test[pp * Ntimes:(pp + 1) * Ntimes] - contrast_floor, label=r'$\Delta_{wf}= % .2f\ pm/s$' % (delta_wf[pp]))
         plt.xlabel("$t_{WFS}$ in secs", fontsize=20)
         plt.ylabel(r"$ \Delta $ contrast", fontsize=20)
@@ -121,7 +120,8 @@ def plot_iter_wf_log(Qharris, WaveScaleMinus, WaveScalePlus, Nwavescale,
         plt.tick_params(axis='both', which='minor', length=6, width=2)
         plt.grid()
 
-    plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.png' % (C_TARGET, WaveScaleMinus, WaveScalePlus, Nwavescale)))
+    plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d_%d.png' % (C_TARGET, WaveScaleMinus, WaveScalePlus, Nwavescale, Vmag)))
+
 
 def plot_pastis_matrix(pastis_matrix, data_dir, vcenter, vmin, vmax):
     clist = [(0.1, 0.6, 1.0), (0.05, 0.05, 0.05), (0.8, 0.5, 0.1)]

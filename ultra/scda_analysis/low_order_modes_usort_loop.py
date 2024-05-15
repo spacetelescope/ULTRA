@@ -55,20 +55,15 @@ if __name__ == '__main__':
 
     # Parameters for temporal analysis
     sptype = CONFIG_ULTRA.get('target', 'sptype')
-    Vmag = CONFIG_ULTRA.getfloat('target', 'Vmag')
 
     minlam = CONFIG_ULTRA.getfloat('target', 'minlam') * u.nanometer
     maxlam = CONFIG_ULTRA.getfloat('target', 'maxlam') * u.nanometer
-
-    dark_current = CONFIG_ULTRA.getfloat('detector', 'dark_current')
-    CIC = CONFIG_ULTRA.getfloat('detector', 'dark_current')
 
     # Set close loop parameters.
     detector_noise = CONFIG_ULTRA.getfloat('detector', 'detector_noise')
     TimeMinus = CONFIG_ULTRA.getfloat('close_loop', 'TimeMinus')
     TimePlus = CONFIG_ULTRA.getfloat('close_loop', 'TimePlus')
     Ntimes = CONFIG_ULTRA.getint('close_loop', 'Ntimes')
-    Nwavescale = CONFIG_ULTRA.getfloat('close_loop', 'Nwavescale')
 
     # Calculate the E-fields in the science and WFS planes.
     calc_wfs = False if WFS == 'lowfs' else True

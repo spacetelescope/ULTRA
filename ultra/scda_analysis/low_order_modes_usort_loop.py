@@ -153,6 +153,7 @@ if __name__ == '__main__':
     wavescaleVec = np.logspace(WaveScaleMinus, WaveScalePlus, Nwavescale)
 
     for Vmag in range(0, 11, 2):
+        start_time = time.time()
         print("\n")
         print(f"Vmag: {Vmag}")
 
@@ -194,3 +195,6 @@ if __name__ == '__main__':
 
         plot_iter_wf_log(Qharris, WaveScaleMinus, WaveScalePlus, Nwavescale, TimeMinus, TimePlus, Ntimes,
                          result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir)
+
+        end_time = time.time()
+        print(f"Time elapsed for Vmag {Vmag}: {end_time - start_time}")

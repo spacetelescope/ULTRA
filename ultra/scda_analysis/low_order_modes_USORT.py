@@ -139,5 +139,5 @@ if __name__ == '__main__':
     np.savetxt(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d.csv' % (C_TARGET, wavescale_min, wavescale_max, wavescale_step)),
                result_wf_test, delimiter=',')
 
-    plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step,
-                 TimeMinus, TimePlus, Ntimes, result_wf_test, contrast_floor, C_TARGET, Vmag, data_dir)
+    plot_iter_wf(Qharris, wavescale_min, wavescale_max, wavescale_step, TimeMinus, TimePlus, Ntimes, result_wf_test,
+                 contrast_floor, C_TARGET, Vmag, data_dir)

@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # Calculate the unaberrated coronagraphic PSF for normalization, and contrast floor.
     unaberrated_coro_psf, ref = tel.calc_psf(ref=True, display_intermediate=False, norm_one_photon=True)
     norm = np.max(ref)
-    contrast_floor = dh_mean(unaberrated_coro_psf / norm, tel.dh_mask.shaped)
+    contrast_floor = dh_mean(unaberrated_coro_psf.shaped / norm, tel.dh_mask.shaped)
 
     # Calculate static tolerances.
     pastis_matrix = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'pastis_matrix.fits'))

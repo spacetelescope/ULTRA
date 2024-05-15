@@ -21,6 +21,18 @@ if __name__ == '__main__':
     # Set number of rings
     NUM_RINGS = 1
 
+    # Define which WFS to calculate, "obwfs" or "lowfs".
+    # The science plane is always calculated.
+    WFS = 'lowfs'
+
+    # Plane to run algorithm on, "coronagraph" or "wfs"
+    PLANE = "coronagraph"
+
+    # Algorithm to use, "batch" or "recursive"
+    ALGORITHM = "batch"
+    algo_function = req_closedloop_calc_batch if ALGORITHM == "batch" else req_closedloop_calc_recursive
+    niter = 10 if ALGORITHM == "batch" else 100
+
     # Define target contrast
     C_TARGET = 1e-10
 
@@ -53,14 +65,16 @@ if __name__ == '__main__':
 
     # Set close loop parameters.
     detector_noise = CONFIG_ULTRA.getfloat('detector', 'detector_noise')
-    niter = CONFIG_ULTRA.getint('close_loop', 'niter')
     TimeMinus = CONFIG_ULTRA.getfloat('close_loop', 'TimeMinus')
     TimePlus = CONFIG_ULTRA.getfloat('close_loop', 'TimePlus')
     Ntimes = CONFIG_ULTRA.getint('close_loop', 'Ntimes')
     Nwavescale = CONFIG_ULTRA.getfloat('close_loop', 'Nwavescale')
 
+    calc_wfs = False if WFS == 'lowfs' else True
+    calc_lowfs = True if WFS == 'lowfs' else False
+
     run_matrix = MatrixEfieldHex(which_dm=WHICH_DM, dm_spec=DM_SPEC, num_rings=NUM_RINGS,
-                                 calc_science=True, calc_wfs=False, calc_lowfs=True,
+                                 calc_science=True, calc_wfs=calc_wfs, calc_lowfs=calc_lowfs,
                                  initial_path=CONFIG_PASTIS.get('local', 'local_data_path'), norm_one_photon=True)
 
     run_matrix.calc()
@@ -82,10 +96,10 @@ if __name__ == '__main__':
     # Get the efields at wfs and science plane.
     efield_science_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_coron_real.fits'))[1:NUM_MODES]
     efield_science_imag = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_coron_imag.fits'))[1:NUM_MODES]
-    efield_wfs_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_lowfs_real.fits'))[1:NUM_MODES]
-    efield_wfs_imag = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_lowfs_imag.fits'))[1:NUM_MODES]
+    efield_wfs_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', f'efield_{WFS}_real.fits'))[1:NUM_MODES]
+    efield_wfs_imag = fits.getdata(os.path.join(data_dir, 'matrix_numerical', f'efield_{WFS}_imag.fits'))[1:NUM_MODES]
     ref_coron = fits.getdata(os.path.join(data_dir, 'ref_e0_coron.fits'))
-    ref_wfs = fits.getdata(os.path.join(data_dir, 'ref_e0_lowfs.fits'))
+    ref_wfs = fits.getdata(os.path.join(data_dir, f'ref_e0_{WFS}.fits'))
 
     # Compute sensitivity matrices.
     print('Computing Sensitivity Matrices..')
@@ -99,6 +113,10 @@ if __name__ == '__main__':
 
     # Compute temporal tolerances.
     print('Computing closed-loop contrast estimation..')
+
+    # Detector plane to iterate over
+    e0_iter = e0_coron if PLANE == "coronagraph" else e0_wfs
+    g_iter = g_coron if PLANE == "coronagraph" else g_wfs
 
     for Vmag in range(0, 11, 2):
         print(Vmag)
@@ -126,19 +144,13 @@ if __name__ == '__main__':
         # for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         for wavescale in wavescaleVec:
             print('Recursive, closed-loop, batch estimation and wavescale %f' % wavescale)
-            niter = 10
             timer1 = time.time()
             StarMag = 0.0
             for tscale in np.logspace(TimeMinus, TimePlus, Ntimes):
                 Starfactor = 10 ** (-StarMag / 2.5)
                 print(tscale)
-                # with Lowfs
-                # tmp0 = req_closedloop_calc_batch(g_coron, g_wfs, e0_coron, e0_wfs, detector_noise,
-                #                                  detector_noise, tscale, flux * Starfactor,
-                #                                  wavescale ** 2 * Qharris,
-                #                                  niter, tel.dh_mask, norm)
-                # # With DH
-                tmp0 = req_closedloop_calc_batch(g_coron, g_coron, e0_coron, e0_coron, detector_noise,
+
+                tmp0 = algo_function(g_coron, g_iter, e0_coron, e0_iter, detector_noise,
                                                  detector_noise, tscale, flux * Starfactor,
                                                  wavescale ** 2 * Qharris,
                                                  niter, tel.dh_mask, norm)

@@ -114,10 +114,36 @@ if __name__ == '__main__':
     e0_coron = sensitivity_matrices['ref_image_plane']
     e0_wfs = sensitivity_matrices['ref_wfs_plane']
 
+    Npup = int(np.sqrt(tel.aperture.shape[0]))
+
+    # Some matrix reshuffling for corono
+    dh_mask_per_act = np.transpose(np.tile(tel.dh_mask, (g_coron.shape[2], 1)))
+    real_coron = dh_mask_per_act * g_coron[:, 0, :]
+    imag_coron = dh_mask_per_act * g_coron[:, 1, :]
+    g_coron_flat = np.concatenate((real_coron, imag_coron), axis=0)
+
+    # Some matrix reshuffling for wfs
+    subsample_factor = 8
+    aperture_square_array = np.reshape(tel.aperture, [Npup, Npup])
+    n_sub_pix = int(Npup / subsample_factor)
+    aperture_square_array_small = matrix_subsample(aperture_square_array, n_sub_pix, n_sub_pix) / subsample_factor ** 2
+    aperture_small = np.reshape(aperture_square_array_small, n_sub_pix ** 2)
+    aperture_mask = aperture_small == 1
+
+    aperture_mask_per_act = np.transpose(np.tile(aperture_mask, (g_wfs.shape[2], 1)))
+    real_wfs = aperture_mask_per_act * g_wfs[:, 0, :]
+    imag_wfs = aperture_mask_per_act * g_wfs[:, 1, :]
+    g_wfs_flat = np.concatenate((real_wfs, imag_wfs), axis=0)
+
+    # Calculate relevant matrices
+    mat_coron = np.dot(np.transpose(g_coron_flat), g_coron_flat)  # / np.sum(tel.dh_mask)
+    mat_wfs = np.dot(np.transpose(g_wfs_flat), g_wfs_flat)  # / np.sum(aperture_mask)
+    eigen_coron = np.diagonal(mat_coron)
+    eigen_wfs = np.diagonal(mat_wfs)
+    numerator = np.sum(eigen_coron / eigen_wfs)
+
     # Compute temporal tolerances.
     print('Computing closed-loop contrast estimation..')
-
-    Npup = int(np.sqrt(tel.aperture.shape[0]))
 
     # Detector plane to iterate over
     e0_iter = e0_coron if PLANE == "coronagraph" else e0_wfs
@@ -142,8 +168,8 @@ if __name__ == '__main__':
         result_wf_test = []
         # for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         for wavescale in wavescaleVec:
-            print('Recursive, closed-loop, batch estimation and wavescale %f' % wavescale)
-            timer1 = time.time()
+            print(f'Closed-loop estimation using {ALGORITHM} algorithm and wavescale {wavescale}')
+
             StarMag = 0.0
             for tscale in np.logspace(TimeMinus, TimePlus, Ntimes):
                 Starfactor = 10 ** (-StarMag / 2.5)
@@ -157,32 +183,6 @@ if __name__ == '__main__':
                 tmp1 = tmp0['averaged_hist']
                 n_tmp1 = len(tmp1)
                 result_wf_test.append(tmp1[n_tmp1 - 1])
-
-                # For corono
-                dh_mask_per_act = np.transpose(np.tile(tel.dh_mask, (g_coron.shape[2], 1)))
-                real_coron = dh_mask_per_act * g_coron[:, 0, :]
-                imag_coron = dh_mask_per_act * g_coron[:, 1, :]
-                g_coron_flat = np.concatenate((real_coron, imag_coron), axis=0)
-
-                # For wfs
-                subsample_factor = 8
-                aperture_square_array = np.reshape(tel.aperture, [Npup, Npup])
-                n_sub_pix = int(Npup / subsample_factor)
-                aperture_square_array_small = matrix_subsample(aperture_square_array, n_sub_pix, n_sub_pix) / subsample_factor**2
-                aperture_small = np.reshape(aperture_square_array_small, n_sub_pix ** 2)
-                aperture_mask = aperture_small == 1
-
-                aperture_mask_per_act = np.transpose(np.tile(aperture_mask, (g_wfs.shape[2], 1)))
-                real_wfs = aperture_mask_per_act * g_wfs[:, 0, :]
-                imag_wfs = aperture_mask_per_act * g_wfs[:, 1, :]
-                g_wfs_flat = np.concatenate((real_wfs, imag_wfs), axis=0)
-
-                # Some matrix reshuffling
-                mat_coron = np.dot(np.transpose(g_coron_flat), g_coron_flat)  # / np.sum(tel.dh_mask)
-                mat_wfs = np.dot(np.transpose(g_wfs_flat), g_wfs_flat)  # / np.sum(aperture_mask)
-                eigen_coron = np.diagonal(mat_coron)
-                eigen_wfs = np.diagonal(mat_wfs)
-                numerator = np.sum(eigen_coron / eigen_wfs)
 
                 # Calculate algorithm parameters
                 denominator_sum = np.sum(wavescale**2 * np.diagonal(Qharris) * eigen_coron)

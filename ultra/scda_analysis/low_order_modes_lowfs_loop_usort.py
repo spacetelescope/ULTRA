@@ -11,9 +11,8 @@ from pastis.pastis_analysis import calculate_segment_constraints
 from pastis.util import dh_mean
 
 from ultra.config import CONFIG_ULTRA
-from ultra.util import calculate_sensitivity_matrices
-from ultra.util import matrix_subsample
-from ultra.close_loop_analysis import req_closedloop_calc_batch
+from ultra.util import calculate_sensitivity_matrices, matrix_subsample
+from ultra.close_loop_analysis import req_closedloop_calc_batch, req_closedloop_calc_recursive
 from ultra.plotting import plot_iter_wf_log
 
 

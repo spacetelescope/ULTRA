@@ -153,6 +153,7 @@ if __name__ == '__main__':
     wavescaleVec = np.logspace(WaveScaleMinus, WaveScalePlus, Nwavescale)
 
     for Vmag in range(0, 11, 2):
+        print("\n")
         print(f"Vmag: {Vmag}")
 
         # Compute stellar flux.
@@ -161,14 +162,13 @@ if __name__ == '__main__':
         flux = star_flux.value * tel.diam ** 2 * np.sum(tel.apodizer ** 2) / Npup ** 2
 
         result_wf_test = []
-        # for wavescale in range(wavescale_min, wavescale_max, wavescale_step):
         for wavescale in wavescaleVec:
             print(f'Closed-loop estimation using {ALGORITHM} algorithm and wavescale {wavescale}')
 
             StarMag = 0.0
             for tscale in np.logspace(TimeMinus, TimePlus, Ntimes):
                 Starfactor = 10 ** (-StarMag / 2.5)
-                print(tscale)
+                print(f"tscale: {tscale}")
 
                 tmp0 = algo_function(g_coron, g_iter, e0_coron, e0_iter, detector_noise,
                                                  detector_noise, tscale, flux * Starfactor,

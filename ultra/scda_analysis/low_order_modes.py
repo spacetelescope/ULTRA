@@ -83,11 +83,11 @@ if __name__ == '__main__':
     efield_wfs_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_obwfs_real.fits'))
     efield_wfs_imag = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_obwfs_imag.fits'))
     ref_coron = fits.getdata(os.path.join(data_dir, 'ref_e0_coron.fits'))
-    ref_obwfs = fits.getdata(os.path.join(data_dir, 'ref_e0_wfs.fits'))
+    ref_wfs = fits.getdata(os.path.join(data_dir, 'ref_e0_obwfs.fits'))
 
     # Compute sensitivity matrices.
     print('Computing Sensitivity Matrices..')
-    sensitivity_matrices = calculate_sensitivity_matrices(ref_coron, ref_obwfs, efield_science_real,
+    sensitivity_matrices = calculate_sensitivity_matrices(ref_coron, ref_wfs, efield_science_real,
                                                           efield_science_imag,
                                                           efield_wfs_real, efield_wfs_imag, subsample_factor=8)
     g_coron = sensitivity_matrices['sensitivity_image_plane']

@@ -85,7 +85,7 @@ if __name__ == '__main__':
     efield_wfs_real = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_lowfs_real.fits'))[1:NUM_MODES]
     efield_wfs_imag = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'efield_lowfs_imag.fits'))[1:NUM_MODES]
     ref_coron = fits.getdata(os.path.join(data_dir, 'ref_e0_coron.fits'))
-    ref_wfs = fits.getdata(os.path.join(data_dir, 'ref_e0_wfs.fits'))
+    ref_wfs = fits.getdata(os.path.join(data_dir, 'ref_e0_lowfs.fits'))
 
     # Compute sensitivity matrices.
     print('Computing Sensitivity Matrices..')

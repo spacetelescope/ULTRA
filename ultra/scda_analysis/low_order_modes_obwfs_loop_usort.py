@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     # Calculate static tolerances.
     pastis_matrix = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'pastis_matrix.fits'))
-    mus = calculate_segment_constraints(pastis_matrix[1:15, 1:15], c_target=C_TARGET, coronagraph_floor=0)
+    mus = calculate_segment_constraints(pastis_matrix[1:NUM_MODES, 1:NUM_MODES], c_target=C_TARGET, coronagraph_floor=0)
     np.savetxt(os.path.join(data_dir, 'mus_Hex_%d_%s.csv' % (NUM_RINGS, C_TARGET)), mus, delimiter=',')
 
     # Get the efields at wfs and science plane.

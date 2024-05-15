@@ -119,7 +119,7 @@ def plot_iter_wf_log(Qharris, WaveScaleMinus, WaveScalePlus, Nwavescale, TimeMin
         plt.tick_params(axis='both', which='minor', length=6, width=2)
         plt.grid()
 
-    plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d_%d.png' % (C_TARGET, WaveScaleMinus, WaveScalePlus, Nwavescale, Vmag)))
+    plt.savefig(os.path.join(data_dir, 'contrast_wf_%s_%d_%d_%d_Vmag%d.png' % (C_TARGET, WaveScaleMinus, WaveScalePlus, Nwavescale, Vmag)))
 
 
 def plot_pastis_matrix(pastis_matrix, data_dir, vcenter, vmin, vmax):

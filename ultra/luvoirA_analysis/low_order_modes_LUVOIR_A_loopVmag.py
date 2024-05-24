@@ -18,9 +18,6 @@ from ultra.plotting import plot_iter_wf_log
 
 if __name__ == '__main__':
 
-    # Set number of rings
-    NUM_RINGS = 1
-
     # Define which WFS to calculate, "obwfs" or "lowfs".
     # The science plane is always calculated.
     WFS = 'lowfs'
@@ -94,7 +91,7 @@ if __name__ == '__main__':
     # Calculate static tolerances.
     pastis_matrix = fits.getdata(os.path.join(data_dir, 'matrix_numerical', 'pastis_matrix.fits'))
     mus = calculate_segment_constraints(pastis_matrix[1:NUM_MODES,1:NUM_MODES], c_target=C_TARGET, coronagraph_floor=0)
-    np.savetxt(os.path.join(data_dir, 'mus_Hex_%d_%s.csv' % (NUM_RINGS, C_TARGET)), mus, delimiter=',')
+    np.savetxt(os.path.join(data_dir, 'mus_Hex_%s.csv' % (C_TARGET)), mus, delimiter=',')
     Qharris = np.diag(np.asarray(mus ** 2))
 
     # Get the efields at wfs and science plane.
